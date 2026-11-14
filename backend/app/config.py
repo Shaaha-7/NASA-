@@ -25,6 +25,11 @@ NASA_API_KEY = os.environ.get("NASA_API_KEY", "DEMO_KEY")
 # it returns the best-matching passages with citations (extractive mode).
 ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
 LLM_MODEL = os.environ.get("MARSPATH_LLM_MODEL", "claude-sonnet-5-5")
+# Google Gemini (preferred when GEMINI_API_KEY is set). Leave GEMINI_MODEL empty to let MarsPath pick a
+# current "flash" model from the models your key can use (listed via the Gemini API, not guessed).
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
+GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "")
+LLM_PROVIDER = "gemini" if GEMINI_API_KEY else ("anthropic" if ANTHROPIC_API_KEY else "none")
 
 # When set to 1 the backend never calls the network (forces offline behaviour,
 # useful to rehearse the Wi-Fi-off demo).

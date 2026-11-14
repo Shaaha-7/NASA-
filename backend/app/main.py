@@ -65,7 +65,7 @@ def status():
     regions = available_region_ids()
     return {"version": VERSION, "online": netutil.is_online(), "force_offline": config.FORCE_OFFLINE,
             "regions_ready": regions, "routing_engine": "A* (numba)" if HAVE_NUMBA else "A* (pure Python)",
-            "assistant_index": assistant.INDEX.exists(), "llm_configured": bool(config.ANTHROPIC_API_KEY),
+            "assistant_index": assistant.INDEX.exists(), "llm_configured": config.LLM_PROVIDER != "none", "llm_provider": config.LLM_PROVIDER,
             "nasa_api_key": "custom" if config.NASA_API_KEY != "DEMO_KEY" else "DEMO_KEY (rate limited)",
             "coordinate_convention": COORDINATE_CONVENTION,
             "server_time_utc": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds")}

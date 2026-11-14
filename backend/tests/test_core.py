@@ -300,3 +300,54 @@ def test_assistant_rag_cites_and_refuses(tmp_path, monkeypatch):
     assert r["found"] and r["citations"] and "[1]" in r["answer"]
     assert assistant.ask("capital city of France")["found"] is False
     assert assistant._sentences("Named after Octavia E. Butler. Next sentence.")[0].endswith("Butler.")
+
+
+def test_grounding_check_removes_unsupported_claims(monkeypatch):
+    """The hallucination guard keeps cited, supported sentences and drops uncited ones and invented numbers."""
+    from app import assistant
+    monkeypatch.setattr(assistant, "_embedder", lambda: None)  # keyword-support mode, no model needed
+    hits = [{"text": "SHERLOC recorded the most abundant organic detections at Wildcat Ridge, a sulfate-bearing mudstone."},
+            {"text": "Perseverance landed in Jezero crater in February 2021."}]
+    answer = ("SHERLOC recorded abundant organic detections at Wildcat Ridge [1]. "
+              "Perseverance landed in Jezero crater in 2021 [2]. "
+              "The rock is 3.8 billion years old [1]. "
+              "Life was definitely found there.")
+    g = assistant.grounding_check(answer, hits)
+    assert g["supported"] == 2 and g["total"] == 4
+    reasons = " ".join(d["reason"] for d in g["removed"])
+    assert "no citation" in reasons and "numbers not in cited sources" in reasons
+    assert "billion" not in g["answer"] and "definitely" not in g["answer"]
+
+
+def test_llm_answer_path_with_mocked_gemini(tmp_path, monkeypatch):
+    """With a (mocked) Gemini reply the assistant returns the grounded answer and reports the provider."""
+    from app import assistant, config, llm, netutil
+    (tmp_path / "a.txt").write_text("Wildcat Ridge is a fine-grained mudstone. SHERLOC recorded abundant organic "
+                                    "molecules there, correlated with sulfate minerals. " * 6, encoding="utf-8")
+    (tmp_path / "docs.json").write_text(json.dumps([{"file": "a.txt", "title": "WR", "url": "https://x",
+                                                     "date": "2022", "licence": "test"}]), encoding="utf-8")
+    monkeypatch.setattr(assistant, "INDEX", tmp_path / "idx.json")
+    monkeypatch.setattr(assistant, "INDEX_EMB", tmp_path / "emb.npy")
+    monkeypatch.setattr(assistant, "_internal_docs", lambda: [])
+    monkeypatch.setattr(assistant, "_embedder", lambda: None)
+    assistant.build_index(tmp_path, tmp_path / "idx.json", embed=False)
+    monkeypatch.setattr(config, "LLM_PROVIDER", "gemini")
+    monkeypatch.setattr(netutil, "is_online", lambda *a, **k: True)
+    monkeypatch.setattr(llm, "generate", lambda s, u, max_tokens=500: (
+        "Wildcat Ridge is a fine-grained mudstone with organic molecules correlated with sulfate minerals [1].",
+        "gemini", "gemini-test-flash"))
+    r = assistant.ask("Which mudstone had organic molecules with sulfate minerals?")
+    assert r["mode"] == "llm" and r["provider"] == "gemini" and r["grounding"]["supported"] == 1
+
+
+def test_citation_styles_are_normalised(monkeypatch):
+    """Gemini-style citations ([1, 2], [1-2], citation after the full stop) still pass the grounding check."""
+    from app import assistant
+    monkeypatch.setattr(assistant, "_embedder", lambda: None)
+    hits = [{"text": "SHERLOC recorded organic detections at Wildcat Ridge."},
+            {"text": "Wildcat Ridge is a sulfate-bearing mudstone."}]
+    assert assistant._normalise_citations("A claim. [1, 2]", 2) == "A claim [1][2]."
+    assert assistant._normalise_citations("A claim [1-2].", 2) == "A claim [1][2]."
+    g = assistant.grounding_check("SHERLOC recorded organic detections at Wildcat Ridge. [1] "
+                                  "Wildcat Ridge is a sulfate-bearing mudstone. [1, 2]", hits)
+    assert g["supported"] == 2 and g["total"] == 2

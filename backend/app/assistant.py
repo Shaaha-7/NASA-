@@ -15,8 +15,10 @@ Retrieval (hybrid, fully offline once built)
   the response says so.
 
 Answering
-* Online with ANTHROPIC_API_KEY: Claude writes 2-5 sentences from the retrieved passages only, citing
-  [n]; citations are checked against the passages actually sent. "NOT_IN_DOCUMENTS" -> not found.
+* Online with GEMINI_API_KEY (or ANTHROPIC_API_KEY): the LLM writes 2-5 sentences from the retrieved
+  passages only, citing [n], at temperature 0. "NOT_IN_DOCUMENTS" -> not found. Every sentence then
+  passes a grounding check (citation, numbers, semantic support); unsupported sentences are removed,
+  and if too few survive the answer falls back to quoting the sources.
 * Otherwise "extractive": the most relevant sentences, each quoted with its [n].
 * With a location (lon/lat + region), MarsPath's own terrain/geology readout for that point is added
   as a cited source, labelled as model-derived data rather than literature.
@@ -31,7 +33,7 @@ from pathlib import Path
 
 import numpy as np
 
-from . import config, netutil
+from . import config, llm, netutil
 
 INDEX = config.CACHE_DIR / "assistant_index.json"
 INDEX_EMB = config.CACHE_DIR / "assistant_embeddings.npy"
@@ -217,6 +219,11 @@ def _norm_rows(a: np.ndarray) -> np.ndarray:
 # ---------------------------------------------------------------- index
 
 
+def _emb_path(index_path: Path) -> Path:
+    """Embeddings live next to their index, so a test or scratch index never overwrites the real one."""
+    return INDEX_EMB if Path(index_path) == INDEX else Path(index_path).with_name(Path(index_path).stem + "_embeddings.npy")
+
+
 def build_index(docs_dir: Path | None = None, out: Path | None = None, embed: bool = True) -> dict:
     docs_dir = docs_dir or config.DOCS_DIR
     out = out or INDEX
@@ -256,10 +263,10 @@ def build_index(docs_dir: Path | None = None, out: Path | None = None, embed: bo
         model = _embedder()
         if model is not None:
             vecs = np.array(list(model.passage_embed([f"{c['title']}. {c['text']}" for c in chunks])), dtype="float32")
-            np.save(INDEX_EMB, _norm_rows(vecs).astype("float32"))
+            np.save(_emb_path(out), _norm_rows(vecs).astype("float32"))
             emb_info = {"model": EMBED_MODEL, "dim": int(vecs.shape[1])}
-        elif INDEX_EMB.exists():
-            INDEX_EMB.unlink()
+        elif _emb_path(out).exists():
+            _emb_path(out).unlink()
     idx = {"n": len(chunks), "avgdl": (sum(len(c["tokens"]) for c in chunks) / len(chunks)) if chunks else 0,
            "df": dict(df), "chunks": chunks, "docs": sorted({c["doc"] for c in chunks}), "skipped": skipped,
            "embeddings": emb_info}
@@ -359,6 +366,74 @@ def _relevant(h: dict) -> bool:
     return h["bm25"] > 0 and h.get("query_coverage", 0) >= 0.5
 
 
+# ---------------------------------------------------------------- hallucination guard
+
+SUPPORT_COS = 0.70   # sentence-to-cited-passage similarity needed to count as supported
+MIN_SUPPORT = 0.6    # share of sentences that must be supported, else fall back to quoting the sources
+
+
+def _normalise_citations(text: str, n: int) -> str:
+    """Bring LLM citation styles to [a][b] placed before the sentence end:
+    "[1, 2]" / "[1-3]" / "[1; 2]" -> "[1][2]..."; "claim. [1]" -> "claim [1]." """
+    def expand(m):
+        nums = []
+        for part in re.split(r"[,;]\s*", m.group(1)):
+            r = re.fullmatch(r"(\d+)\s*[-–]\s*(\d+)", part.strip())
+            if r:
+                a, b = int(r.group(1)), int(r.group(2))
+                nums += list(range(a, min(b, n) + 1))
+            elif part.strip().isdigit():
+                nums.append(int(part.strip()))
+        return "".join(f"[{x}]" for x in nums)
+    text = re.sub(r"\[(\s*\d+(?:\s*(?:[,;]|[-–])\s*\d+)+\s*)\]", expand, text)
+    text = re.sub(r"([.!?])\s*((?:\[\d+\]\s*)+)", lambda m: " " + m.group(2).strip() + m.group(1) + " ", text)
+    return re.sub(r"\s+", " ", text).strip()
+
+
+def grounding_check(answer: str, hits: list[dict]) -> dict:
+    """Check an LLM answer sentence by sentence against the passages it cites.
+
+    A sentence is kept only if (1) it cites at least one valid passage [n], (2) every number in it
+    appears in one of its cited passages, and (3) it is supported by a cited passage: semantic
+    similarity >= SUPPORT_COS with the local embedding model, or, without embeddings, at least 60 %
+    of its key words appear in the passage. Unsupported sentences are removed and reported."""
+    answer = _normalise_citations(answer, len(hits))
+    sents = _sentences(answer)
+    model = _embedder()
+    kept, dropped = [], []
+    for s in sents:
+        refs = [int(n) for n in re.findall(r"\[(\d+)\]", s) if 1 <= int(n) <= len(hits)]
+        body = re.sub(r"\s*\[\d+\]", "", s).strip()
+        if not body:
+            continue
+        if not refs:
+            dropped.append({"sentence": body, "reason": "no citation"})
+            continue
+        src = " ".join(hits[n - 1]["text"] for n in refs)
+        nums = re.findall(r"\d+(?:[.,]\d+)?", body)
+        missing = [x for x in nums if x not in src and x.replace(",", "") not in src.replace(",", "")]
+        if missing:
+            dropped.append({"sentence": body, "reason": f"numbers not in cited sources: {missing}"})
+            continue
+        if model is not None:
+            vs = np.array(list(model.embed([body] + [hits[n - 1]["text"] for n in refs])), dtype="float32")
+            vs = _norm_rows(vs)
+            score = float(np.max(vs[1:] @ vs[0]))
+            ok = score >= SUPPORT_COS
+        else:
+            bt = set(_tokens(body))
+            score = len(bt & set(_tokens(src))) / len(bt) if bt else 0.0
+            ok = score >= 0.6
+        if ok:
+            kept.append(s.strip())
+        else:
+            dropped.append({"sentence": body, "reason": f"weak support from cited source (score {score:.2f})"})
+    total = len(kept) + len(dropped)
+    return {"answer": " ".join(kept), "total": total, "supported": len(kept), "kept_sentences": len(kept),
+            "support_ratio": round(len(kept) / total, 2) if total else 0.0, "removed": dropped,
+            "method": "citation + number + semantic-support check per sentence"}
+
+
 # ---------------------------------------------------------------- answering
 
 
@@ -426,31 +501,25 @@ def ask(question: str, region_name: str | None = None, lon: float | None = None,
                 "retrieval": "hybrid" if _loaded.get("emb") is not None else "bm25"}
     cites = [_cite(i, h) for i, h in enumerate(hits)]
     note = ""
-    if config.ANTHROPIC_API_KEY and netutil.is_online():
+    if config.LLM_PROVIDER != "none" and netutil.is_online():
         try:
             ctx = "\n\n".join(f"[{i+1}] ({h['title']}{', page ' + str(h['page']) if h.get('page') else ''}"
                               f"{'; MarsPath data' if h.get('internal') else ''})\n{h['text']}" for i, h in enumerate(hits))
             where = (f" The user is looking at {region_name or 'the map'}, lon {lon:.4f} E, lat {lat:.4f} N."
                      if lon is not None and lat is not None else (f" Region: {region_name}." if region_name else ""))
-            import httpx
-            r = httpx.post("https://api.anthropic.com/v1/messages", timeout=45,
-                           headers={"x-api-key": config.ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01",
-                                    "content-type": "application/json"},
-                           json={"model": config.LLM_MODEL, "max_tokens": 450, "system": GUARDRAIL,
-                                 "messages": [{"role": "user", "content": f"Sources:\n{ctx}\n\nQuestion: {q}{where}"}]})
-            r.raise_for_status()
-            text = "".join(b.get("text", "") for b in r.json().get("content", [])).strip()
+            text, provider, model = llm.generate(GUARDRAIL, f"Sources:\n{ctx}\n\nQuestion: {q}{where}")
             if "NOT_IN_DOCUMENTS" in text:
-                return {"found": False, "mode": "llm", "answer": "Not found in the loaded documents.", "citations": cites}
-            used = sorted({int(n) for n in re.findall(r"\[(\d+)\]", text)})
-            bad = [n for n in used if not 1 <= n <= len(hits)]
-            text = re.sub(r"\[(\d+)\]", lambda m: m.group(0) if 1 <= int(m.group(1)) <= len(hits) else "", text)
-            return {"found": True, "mode": "llm", "model": config.LLM_MODEL, "answer": text,
-                    "citations": cites, "cited": [n for n in used if n not in bad],
-                    "citation_check": "ok" if not bad and used else ("no citations in answer" if not used
-                                                                     else f"removed invalid citations {bad}")}
-        except Exception as e:
-            note = f" (LLM unavailable: {str(e).splitlines()[0][:120]})"
+                return {"found": False, "mode": "llm", "provider": provider, "model": model,
+                        "answer": "Not found in the loaded documents.", "citations": cites}
+            g = grounding_check(text, hits)
+            if g["kept_sentences"] == 0 or g["support_ratio"] < MIN_SUPPORT:
+                note = (f" (LLM answer rejected by the grounding check: {g['supported']}/{g['total']} sentences "
+                        "supported by their cited sources)")
+            else:
+                return {"found": True, "mode": "llm", "provider": provider, "model": model, "answer": g["answer"],
+                        "citations": cites, "grounding": {k: v for k, v in g.items() if k != "answer"}}
+        except llm.LLMError as e:
+            note = f" (LLM unavailable: {e})"
     return {"found": True, "mode": "extractive", "answer": _extractive(q, hits) or hits[0]["text"][:500] + " [1]",
             "note": "Extractive answer: the most relevant sentences from the sources, quoted, not a generated summary."
                     + note, "citations": cites}
