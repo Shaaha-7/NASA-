@@ -1,0 +1,36 @@
+# Raw downloads are large: keep them local, never commit them.
+# Only small processed files (data/processed/) go to GitHub.
+data/**/raw/
+*.hdf
+*.HDF
+*.h5
+*.he5
+*.hdf5
+*.nc
+*.nc4
+*.IMG
+*.img
+*.zip
+*.tar
+*.gz
+
+# Secrets: never commit logins or tokens
+.env
+.netrc
+_netrc
+*.token
+
+# Python / Node
+__pycache__/
+*.pyc
+.venv/
+venv/
+node_modules/
+.ipynb_checkpoints/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
