@@ -281,3 +281,22 @@ def test_ground_view_image_rejects_bad_ids():
     for bad in ("../secret", "..\\x", "a/b", "", "ok id"):
         assert rover_images.local_image(bad, "small") is None
     assert rover_images.local_image("ZL0_0001", "huge") is None
+
+
+def test_assistant_rag_cites_and_refuses(tmp_path, monkeypatch):
+    """Hybrid/BM25 retrieval answers from the documents with citations and refuses off-topic questions."""
+    from app import assistant
+    (tmp_path / "a.txt").write_text("Wildcat Ridge is a fine-grained mudstone. SHERLOC recorded abundant organic "
+                                    "molecules there, correlated with sulfate minerals. " * 6, encoding="utf-8")
+    (tmp_path / "docs.json").write_text(json.dumps([{"file": "a.txt", "title": "Wildcat Ridge", "url": "https://x",
+                                                     "date": "2022", "licence": "test"}]), encoding="utf-8")
+    monkeypatch.setattr(assistant, "INDEX", tmp_path / "idx.json")
+    monkeypatch.setattr(assistant, "INDEX_EMB", tmp_path / "emb.npy")
+    monkeypatch.setattr(assistant, "_internal_docs", lambda: [])
+    monkeypatch.setattr(assistant.config, "ANTHROPIC_API_KEY", "")
+    info = assistant.build_index(tmp_path, tmp_path / "idx.json", embed=False)
+    assert info["chunks"] >= 1
+    r = assistant.ask("Which mudstone had organic molecules with sulfate minerals?")
+    assert r["found"] and r["citations"] and "[1]" in r["answer"]
+    assert assistant.ask("capital city of France")["found"] is False
+    assert assistant._sentences("Named after Octavia E. Butler. Next sentence.")[0].endswith("Butler.")

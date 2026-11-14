@@ -436,11 +436,11 @@ def offline_prefetch(region_id: str, zmax: int = 9):
 
 @app.post(f"{API}/assistant/ask")
 def assistant_ask(req: AskRequest):
-    region_name = None
+    region_name, r = None, None
     if req.region_id:
         r = get_region(req.region_id)
         region_name = r.manifest["name"] if r else None
-    res = assistant.ask(req.question, region_name, req.lon, req.lat)
+    res = assistant.ask(req.question, region_name, req.lon, req.lat, region=r)
     res["offline"] = not netutil.is_online()
     return res
 
