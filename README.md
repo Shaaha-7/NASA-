@@ -1,32 +1,28 @@
-# Analog Fingerprint
+# MarsPath
 
-**NASA Space Apps Challenge 2026:** *Identify Earth Locations that Analog the Permanent Moon Base Locations and Mars*
-Official challenge: https://www.spaceappschallenge.org/2026/challenges/permanent-moon-base-locations-and-mars/
+**NASA Space Apps Challenge 2026:** *Interplanetary Survival Guide: Martian Map*
+Official challenge: https://www.spaceappschallenge.org/2026/challenges/interplanetary-survival-guide-martian-map/
 
-## What it does
-No place on Earth is identical to the Moon or Mars. This project uses open NASA and partner-agency data (ESA, JAXA, CSA, ISRO) to find the best places on Earth to practice for a specific mission.
+MarsPath is a browser-based, terrain-aware route planner for a human Marswalk. It combines data from several NASA Mars missions into one layered map of a study region, suggests a route from a start point to a destination, and shows the distance, elevation profile, slope and caution flags for that route, with the source of every number. The core works offline once a region is packaged.
 
-1. **Discoveries:** new Earth analog sites we identified, each with a scorecard showing what matches and what does not.
-2. **Mission finder:** enter what you are testing (robot or human, maximum slope, temperature range, power source, ice drilling) and get a ranked list of Earth practice sites for a chosen Moon or Mars target.
-3. **Proof:** a blind test showing the method finds well-known analog sites (Atacama, Haughton Crater, Death Valley, and others) on its own, plus all data sources.
+## First study region: Jezero Crater
+| Item | Value | Source |
+|---|---|---|
+| Center | 18.41° N, 77.69° E (planetocentric, east-positive, 0–360°) | [IAU/USGS Gazetteer, Jezero](https://planetarynames.wr.usgs.gov/Feature/14300) |
+| Diameter | 47.52 km | same |
+| Why | Ancient lake and river delta; NASA's Perseverance rover has explored it since February 2021 | [Stack et al. 2020](https://link.springer.com/article/10.1007/s11214-020-00739-x) |
 
-## Targets
-- **Moon:** Mons Mouton, a NASA Artemis candidate landing region near the south pole (the first crewed landing is now planned for Artemis IV, early 2028)
-- **Mars:** Arcadia Planitia (shallow subsurface ice)
-- **Mars:** Jezero Crater (ancient lake delta, Perseverance rover site)
+## Data
+| Dataset | Use | Resolution | Source |
+|---|---|---|---|
+| Mars 2020 Science Investigation CTX DEM mosaic | Main elevation, slope and route cost | 20 m/pixel | [USGS Astrogeology](https://astrogeology.usgs.gov/search/map/mars_2020_science_investigation_ctx_dem_mosaic) |
+| Mars 2020 TRN HiRISE DTM mosaic | Detailed zoom area (stretch) | 1 m/pixel | [USGS Astrogeology](https://astrogeology.usgs.gov/search/map/mars_2020_terrain_relative_navigation_hirise_dtm_mosaic) |
+| MGS MOLA MEGDR | Regional overview | ~463 m/pixel | [NASA PDS Geosciences](https://pds-geosciences.wustl.edu/missions/mgs/megdr.html) |
+| NASA Mars Trek | Imagery and layer browsing | varies | [trek.nasa.gov/mars](https://trek.nasa.gov/mars/) |
+| USGS-NASA geologic maps of Mars | Geology layer and science stops | varies | [USGS Astrogeology](https://astrogeology-usgs.hub.arcgis.com/pages/interactive-maps-mars) |
+| Perseverance raw images | Science-stop images | n/a | [NASA Mars 2020](https://mars.nasa.gov/mars2020/multimedia/raw-images/) |
 
-## What Earth cannot reproduce
-Gravity (Moon 0.17 g, Mars 0.38 g), the lunar vacuum, the thin Martian atmosphere, and the radiation environment. Every result states these limits.
+Raw downloads are kept outside the repository (`C:\NASA_DATA`). Only small processed files go in `data/processed/`.
 
-## Repository layout
-| Path | Contents |
-|---|---|
-| `IDEA.md` | **Start here:** the detailed project idea and questions for the team |
-| `TARGETS.md` | The 3 Moon and Mars targets: official coordinates, conditions, and sources |
-| `CLAUDE.md` | Project charter, standards, and quality gates |
-| `DATA_SOURCES.md` | Download links for all datasets |
-| `TEAM_TASKS.md` | Who does what, and when |
-| `data/` | Data folders. Raw downloads stay local (git-ignored); only small processed files are committed. |
-
-## Team
-NASA Space Apps Challenge 2026 team. All data sources are credited in `REFERENCES.md` (in progress).
+## Limitations
+MarsPath is a prototype planning aid, not a certified navigation or safety system. Route costs are relative and depend on a stated slope-cost model. Packaged data has a date and shows no live conditions.

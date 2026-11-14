@@ -1,6 +1,12 @@
-# Raw downloads are large: keep them local, never commit them.
+# Raw downloads are large: keep them local (C:\NASA_DATA), never commit them.
 # Only small processed files (data/processed/) go to GitHub.
+data/*
+!data/processed/
+!data/README.md
 data/**/raw/
+*.tif
+*.tiff
+!data/processed/**/*.tif
 *.hdf
 *.HDF
 *.h5
