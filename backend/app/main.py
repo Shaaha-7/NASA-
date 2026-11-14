@@ -17,12 +17,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse, RedirectResponse, Response
 from fastapi.staticfiles import StaticFiles
 
-from . import assistant, config, netutil, offline, spaceweather
+from . import assistant, config, netutil, offline, rover_images, spaceweather
 from .eva import EvaParams
 from .geo import COORDINATE_CONVENTION, validate_lonlat
 from .region_store import available_region_ids, get_region
 from .routing import HAVE_NUMBA, PROFILES, RouteError, compute_route, optimise_stop_order
-from .schemas import AskRequest, CompareRequest, MissionRequest, RouteRequest
+from .reachability import compute_reachability
+from .schemas import AskRequest, CompareRequest, MissionRequest, ReachabilityRequest, RouteRequest
 
 VERSION = "1.0.0"
 app = FastAPI(title="MarsPath API", version=VERSION,
@@ -178,6 +179,27 @@ def validation(region_id: str):
                                                     "backend/scripts/validate_against_rover.py " + region_id})
     return json.loads(f.read_text(encoding="utf-8"))
 
+
+@app.get(f"{API}/ground-view")
+def ground_view(region_id: str, lon: float | None = None, lat: float | None = None, site_id: str | None = None,
+                max_images: int = 8):
+    """Real Perseverance camera images from the rover stop nearest a point or a curated science site."""
+    r = _region_or_404(region_id)
+    if site_id:
+        site = next((f for f in r.read_geojson("science_sites.geojson").get("features", [])
+                     if f.get("properties", {}).get("id") == site_id), None)
+        if site is None:
+            raise HTTPException(404, detail={"code": "not_found", "message": f"No science site '{site_id}'"})
+        lon, lat = site["geometry"]["coordinates"][:2]
+    if lon is None or lat is None:
+        raise HTTPException(422, detail={"code": "bad_request", "message": "Give lon and lat, or site_id"})
+    validate_lonlat(lon, lat)
+    out = rover_images.ground_view(r, lon, lat, max_images=max(1, min(max_images, 30)))
+    out["offline"] = not netutil.is_online()
+    if site_id:
+        out["site_id"] = site_id
+    return out
+
 # ------------------------------------------------------------------ routes
 
 
@@ -227,6 +249,19 @@ def routes_calculate(req: RouteRequest):
     route["stop_order"] = opt or {"order": list(range(len(pts) - 2)), "changed": False}
     route["offline"] = not netutil.is_online()
     return _attach_space_weather(route, eva)
+
+
+@app.post(f"{API}/reachability")
+def reachability(req: ReachabilityRequest):
+    """Walking range from a habitat/start: where an astronaut can go and still get back within the
+    usable EVA time, as GeoJSON bands, plus which curated science stops are in range."""
+    r = _region_or_404(req.region_id)
+    validate_lonlat(req.start.lon, req.start.lat)
+    eva = EvaParams.defaults().merged(req.eva.model_dump(exclude_none=True))
+    sites = r.read_geojson("science_sites.geojson").get("features", []) if req.include_science_sites else []
+    out = compute_reachability(r, req.start.lon, req.start.lat, eva, sites)
+    out["offline"] = not netutil.is_online()
+    return out
 
 
 @app.post(f"{API}/routes/compare")

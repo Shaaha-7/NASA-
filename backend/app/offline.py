@@ -14,7 +14,7 @@ import math
 import zipfile
 from pathlib import Path
 
-from . import assistant, config, netutil, spaceweather
+from . import assistant, config, netutil, rover_images, spaceweather
 from .region_store import get_region
 
 TILES = config.CACHE_DIR / "tiles"
@@ -80,6 +80,11 @@ def prefetch(region_id: str, zmax: int = 9, layers: list[str] | None = None) -> 
     except Exception as e:
         report["donki"] = f"not refreshed: {spaceweather._clean(e)[:120]}"
     try:
+        sites = region.read_geojson("science_sites.geojson").get("features", [])
+        report["rover_images"] = rover_images.prefetch_for_sites(region, sites)
+    except Exception as e:
+        report["rover_images"] = f"not cached: {str(e)[:120]}"
+    try:
         report["assistant"] = assistant.build_index()
     except Exception as e:
         report["assistant"] = f"index not built: {e}"
@@ -103,6 +108,7 @@ def manifest(region_id: str) -> dict:
         "region_id": region_id, "name": m["name"], "is_test_fixture": region.is_test_fixture,
         "data_date": m.get("data_date"), "processed_at": m.get("processed_at"),
         "ready_offline": {"terrain_and_layers": True, "context_tiles": len(tfiles) > 0,
+                          "rover_image_lists": len(_files(rover_images.CACHE_DIR)) > 0,
                           "space_weather_cache": donki.exists(), "assistant_index": idx.exists()},
         "files": [{"path": str(p.relative_to(region.folder)), "bytes": p.stat().st_size} for p in rfiles],
         "region_bytes": sum(p.stat().st_size for p in rfiles),
@@ -124,6 +130,8 @@ def build_zip(region_id: str) -> Path:
             z.write(p, Path("data/processed") / region_id / p.relative_to(region.folder))
         for p in _files(TILES):
             z.write(p, Path("data/cache/tiles") / p.relative_to(TILES))
+        for p in _files(rover_images.CACHE_DIR):
+            z.write(p, Path("data/cache/raw_images") / p.relative_to(rover_images.CACHE_DIR))
         for extra in (config.CACHE_DIR / "donki.json", assistant.INDEX):
             if extra.exists():
                 z.write(extra, Path("data/cache") / extra.name)

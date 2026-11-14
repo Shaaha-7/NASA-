@@ -41,6 +41,13 @@ class RouteRequest(BaseModel):
     eva: EvaOverrides = Field(default_factory=EvaOverrides)
 
 
+class ReachabilityRequest(BaseModel):
+    region_id: str
+    start: LonLat = Field(..., description="Habitat or EVA start point")
+    eva: EvaOverrides = Field(default_factory=EvaOverrides)
+    include_science_sites: bool = Field(True, description="Report which curated science stops are in range")
+
+
 class CompareRequest(BaseModel):
     region_id: str
     start: LonLat

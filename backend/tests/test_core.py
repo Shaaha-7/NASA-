@@ -210,3 +210,30 @@ def test_validation_endpoint_without_benchmark(synthetic):
     assert r.status_code in (200, 404)
     if r.status_code == 404:
         assert r.json()["detail"]["code"] == "not_available"
+
+
+def test_reachability_bands_and_consistency(synthetic):
+    """Walking range: nested bands grow with time, and the round trip to a point agrees with the router."""
+    from app.reachability import compute_reachability
+    from app.routing import compute_route
+    eva = EvaParams.defaults().merged({"eva_hours": 6})
+    start = (120.005, 10.012)
+    r = compute_reachability(synthetic, *start, eva)
+    areas = [f["properties"]["area_km2"] for f in r["bands"]["features"]]
+    assert areas and areas == sorted(areas)
+    assert r["reachable_area_km2"] > 0
+    far = r["farthest_point"]
+    route = compute_route(synthetic, [start, (far["lon"], far["lat"])], eva, "fastest")
+    assert abs(route["eva"]["required_min"] - far["round_trip_min"]) <= 0.05 * far["round_trip_min"] + 1
+
+
+def test_ground_view_offline_is_honest(synthetic, monkeypatch, tmp_path):
+    """Offline with nothing cached: no images are invented, and the reason is reported."""
+    from app import netutil, rover_images
+    monkeypatch.setattr(rover_images, "CACHE_DIR", tmp_path / "raw_images")
+    monkeypatch.setattr(netutil, "is_online", lambda: False)
+    lon, lat = 120.03, 10.03
+    gv = rover_images.ground_view(synthetic, lon, lat)
+    if "rover_stop" in gv:
+        assert gv["images"] == [] and gv["available"] is False
+        assert all("offline" in s for s in gv["fetch_status"].values())
