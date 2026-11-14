@@ -1,0 +1,14 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {"type": "Point", "coordinates": [0, 0]},
+      "properties": {
+        "id": "site-01", "kind": "science_site", "name": "EXAMPLE - replace with a real, sourced site",
+        "goal_id": "G1", "observation": "", "mission": "", "instrument": "", "observation_date": "",
+        "why_it_matters": "", "source": "", "source_url": "", "measured_or_derived": "measured"
+      }
+    }
+  ]
+}

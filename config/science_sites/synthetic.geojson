@@ -1,0 +1,15 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {"type": "Feature", "geometry": {"type": "Point", "coordinates": [120.012, 10.085]},
+     "properties": {"id": "test-site-01", "kind": "science_site", "name": "TEST: plateau top", "goal_id": "T1",
+       "observation": "TEST FIXTURE - synthetic site, no real observation", "mission": "TEST FIXTURE", "instrument": "synthetic",
+       "observation_date": null, "why_it_matters": "Exercises the science-pin pop-up.", "source": "TEST FIXTURE", "source_url": null,
+       "measured_or_derived": "test fixture"}},
+    {"type": "Feature", "geometry": {"type": "Point", "coordinates": [120.06, 10.03]},
+     "properties": {"id": "test-site-02", "kind": "science_site", "name": "TEST: boulder field", "goal_id": "T1",
+       "observation": "TEST FIXTURE - synthetic site, no real observation", "mission": "TEST FIXTURE", "instrument": "synthetic",
+       "observation_date": null, "why_it_matters": "Exercises roughness warnings.", "source": "TEST FIXTURE", "source_url": null,
+       "measured_or_derived": "test fixture"}}
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "region_id": "synthetic",
+  "name": "SYNTHETIC TEST SITE (invented terrain, not real Mars)",
+  "is_test_fixture": true,
+  "raw_dir": "test_raw/synthetic",
+  "bbox": { "west": 120.00, "south": 10.00, "east": 120.12, "north": 10.10 },
+  "routing_resolution_m": 10,
+  "fine_resolution_m": 4,
+  "overlay_max_px": 1600,
+  "inputs": {
+    "dem_primary":     { "patterns": ["SYNTH_dem_primary_*.tif"], "label": "TEST FIXTURE: synthetic high-res DEM", "mission": "TEST FIXTURE", "instrument": "synthetic", "url": null, "nominal_resolution_m": 4 },
+    "dem_fallback":    { "patterns": ["SYNTH_dem_fallback_*.tif"], "label": "TEST FIXTURE: synthetic low-res DEM", "mission": "TEST FIXTURE", "instrument": "synthetic", "url": null, "nominal_resolution_m": 20 },
+    "ortho_ctx":       { "patterns": ["SYNTH_ctx_ortho_*.tif"], "label": "TEST FIXTURE: synthetic image", "mission": "TEST FIXTURE", "instrument": "synthetic", "url": null, "nominal_resolution_m": 6 },
+    "themis_day":      { "patterns": ["SYNTH_themis_day_*.tif"], "label": "TEST FIXTURE: synthetic thermal", "mission": "TEST FIXTURE", "instrument": "synthetic", "url": null, "nominal_resolution_m": 100 },
+    "geo_units":       { "patterns": ["SYNTH_GeoUnits.shp"], "label": "TEST FIXTURE: synthetic geologic units", "mission": "TEST FIXTURE", "instrument": "synthetic", "url": null },
+    "rover_waypoints": { "patterns": ["SYNTH_waypoints.json"], "label": "TEST FIXTURE: synthetic rover stops", "mission": "TEST FIXTURE", "instrument": "synthetic", "url": null },
+    "rover_traverse":  { "patterns": ["SYNTH_traverse.json"], "label": "TEST FIXTURE: synthetic traverse", "mission": "TEST FIXTURE", "instrument": "synthetic", "url": null }
+  },
+  "science_goals": [
+    { "id": "T1", "title": "TEST: reach the plateau top", "summary": "Test goal for the synthetic site.", "status": "TEST FIXTURE", "source_title": null, "source_url": null }
+  ]
+}

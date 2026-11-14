@@ -1,28 +1,169 @@
-# MarsPath
+# MarsPath - terrain-aware Marswalk planner
 
-**NASA Space Apps Challenge 2026:** *Interplanetary Survival Guide: Martian Map*
-Official challenge: https://www.spaceappschallenge.org/2026/challenges/interplanetary-survival-guide-martian-map/
+NASA Space Apps 2026 - *Interplanetary Survival Guide: Martian Map*.
+Backend: FastAPI + NumPy/SciPy/rasterio, A* routing. Frontend: one plain HTML/JS page with Leaflet (kept simple on purpose).
 
-MarsPath is a browser-based, terrain-aware route planner for a human Marswalk. It combines data from several NASA Mars missions into one layered map of a study region, suggests a route from a start point to a destination, and shows the distance, elevation profile, slope and caution flags for that route, with the source of every number. The core works offline once a region is packaged.
+---
 
-## First study region: Jezero Crater
-| Item | Value | Source |
+## 1. Quick start on Windows (about 5 minutes)
+
+1. Unzip anywhere, for example `C:\marspath`. Open the folder in VS Code.
+2. Double-click **`setup.bat`**. It creates `.venv`, installs packages, builds a **synthetic test region** and runs the tests.
+3. Double-click **`run.bat`**. The browser opens at http://localhost:8000/app/
+
+You will see a red **TEST FIXTURE** badge: that region is invented terrain, there only so the app works before the NASA data is downloaded.
+
+Try this:
+- Click **Set start**, then click the map.
+- Click **Set destination**, then click the map.
+- Optionally click a pin and choose **Add as stop**.
+- Press **Calculate route** or **Compare profiles**.
+
+API docs (all endpoints, try-it-out): http://localhost:8000/docs
+
+Prefer the terminal? In VS Code: `python -m venv .venv`, then `.venv\Scripts\activate`, then `pip install -r requirements.txt`, then `python -m uvicorn app.main:app --app-dir backend --port 8000`.
+
+## 2. Load real Jezero data
+
+```
+get_jezero_data.bat
+```
+This runs two scripts: `backend/scripts/fetch_data.py --all`, then `prepare_data.py jezero`.
+
+The downloads go to `data/raw/jezero/`:
+
+| File | Size | Used for |
 |---|---|---|
-| Center | 18.41° N, 77.69° E (planetocentric, east-positive, 0–360°) | [IAU/USGS Gazetteer, Jezero](https://planetarynames.wr.usgs.gov/Feature/14300) |
-| Diameter | 47.52 km | same |
-| Why | Ancient lake and river delta; NASA's Perseverance rover has explored it since February 2021 | [Stack et al. 2020](https://link.springer.com/article/10.1007/s11214-020-00739-x) |
+| `M20_JezeroCrater_CTXDEM_20m.tif` (CTX DEM) | small | Elevation fallback |
+| `JEZ_ctx_B_soc_008_orthoMosaic_6m_...tif` (CTX image) | medium | Base imagery |
+| `JEZ_hirise_soc_006_DTM_..._1m_...tif` (HiRISE DTM) | **about 1.8 GB** | Main routing surface, 1 m |
+| `M20_waypoints.json`, `M20_traverse.json` | small | Perseverance stops and track |
+| SIM 3464 database zip (with `--all`) | about 350 MB | Geologic units + THEMIS day/night IR |
 
-## Data
-| Dataset | Use | Resolution | Source |
-|---|---|---|---|
-| Mars 2020 Science Investigation CTX DEM mosaic | Main elevation, slope and route cost | 20 m/pixel | [USGS Astrogeology](https://astrogeology.usgs.gov/search/map/mars_2020_science_investigation_ctx_dem_mosaic) |
-| Mars 2020 TRN HiRISE DTM mosaic | Detailed zoom area (stretch) | 1 m/pixel | [USGS Astrogeology](https://astrogeology.usgs.gov/search/map/mars_2020_terrain_relative_navigation_hirise_dtm_mosaic) |
-| MGS MOLA MEGDR | Regional overview | ~463 m/pixel | [NASA PDS Geosciences](https://pds-geosciences.wustl.edu/missions/mgs/megdr.html) |
-| NASA Mars Trek | Imagery and layer browsing | varies | [trek.nasa.gov/mars](https://trek.nasa.gov/mars/) |
-| USGS-NASA geologic maps of Mars | Geology layer and science stops | varies | [USGS Astrogeology](https://astrogeology-usgs.hub.arcgis.com/pages/interactive-maps-mars) |
-| Perseverance raw images | Science-stop images | n/a | [NASA Mars 2020](https://mars.nasa.gov/mars2020/multimedia/raw-images/) |
+- **No time for the 1.8 GB file?** Run `fetch_data.py --small`. Everything still works on the 20 m CTX DEM; only roughness is coarser.
+- **A download fails?** The script prints the dataset page. Download that file by hand into `data/raw/jezero/` (unzip zips there). File names do not matter much: files are found by pattern.
+- **Want a different study box?** Edit `bbox` in `config/regions/jezero.json` (it must stay inside the HiRISE DTM: 77.22-77.58 E, 18.31-18.67 N), then run `prepare_data.py jezero` again.
 
-Raw downloads are kept outside the repository (`C:\NASA_DATA`). Only small processed files go in `data/processed/`.
+When it has run, restart `run.bat`. "Jezero" is now in the region menu and selected by default.
 
-## Limitations
-MarsPath is a prototype planning aid, not a certified navigation or safety system. Route costs are relative and depend on a stated slope-cost model. Packaged data has a date and shows no live conditions.
+## 3. Offline demo (Wi-Fi off)
+
+1. While **online**, run **`build_offline.bat`**. It downloads the assistant documents, caches the Mars Trek context tiles and the DONKI space-weather window, and writes `data/cache/marspath_offline_jezero.zip`.
+2. Rehearse with **`run_offline.bat`**: the backend refuses all network calls, like Wi-Fi off.
+3. In the demo, physically switch Wi-Fi off and recalculate a route. The badge shows "Offline - using packaged data from <date>".
+
+Everything the app needs is local: terrain, layers, pins, hazards, routing, space-weather cache and document search. Only the optional LLM answer needs the internet. Offline, the assistant answers in *extractive* mode: it quotes the best passage with its citation.
+
+## 4. Science sites and the assistant (Person 5)
+
+- **Science goals:** edit `science_goals` in `config/regions/jezero.json`. The three are drafts with sources; check the wording.
+- **Curated science pins:** `config/science_sites/jezero.geojson` holds 10 verified Perseverance sample sites (Brac, Issole, Skinner Ridge, Wildcat Ridge, Amalik, Berea, the margin unit, the Three Forks depot, Rochette and the landing site), each tied to a science goal with a source link. It is generated by `backend/scripts/build_science_sites.py`: positions are the rover's own localizations (MMGIS waypoints) on the sampling sol, never typed by hand. Re-run `prepare_data.py jezero` after changing it.
+- **Rover benchmark (proof):** `backend/scripts/validate_against_rover.py jezero` plans routes between Perseverance waypoints where the rover drove fairly directly and measures how close they stay to its real track, against a straight-line baseline. Result on the HiRISE DTM: median 61 m from the rover track vs 122 m for a straight line, closer in 4 of 5 stretches. Served at `/api/v1/validation`.
+- **Assistant documents:** `data/docs/docs_sources.json` lists the corpus. `fetch_docs.py` downloads it and builds the index. Check every licence marked "Person 5 to confirm".
+- **LLM answers (optional):** set `ANTHROPIC_API_KEY` in `local_keys.bat`. Without it, answers are extractive, still cited.
+
+## 5. Keys (optional)
+
+- `NASA_API_KEY`: free at https://api.nasa.gov. Used for DONKI space weather. `DEMO_KEY` works but is rate-limited.
+- `ANTHROPIC_API_KEY`: for written assistant answers.
+- `MARSPATH_OFFLINE=1`: forces offline behaviour.
+
+Put them in a file called `local_keys.bat` next to `run.bat` (it is git-ignored; never commit keys):
+
+```
+@echo off
+set NASA_API_KEY=your_key_here
+REM set ANTHROPIC_API_KEY=your_key_here
+```
+
+`run.bat` loads it automatically. Error messages from NASA calls are cleaned so the key never appears in the API or UI.
+
+## 6. How the backend works
+
+```
+raw NASA/USGS files --prepare_data.py--> data/processed/<region>/  (terrain.npz, layers/*.png, pins, hazards, manifest.json)
+                                              |
+browser  <-->  FastAPI (backend/app/main.py)  +-- routing.py  A* on a time-cost surface
+                                              +-- eva.py      suit walking model (team assumptions)
+                                              +-- spaceweather.py  DONKI + RAD reference
+                                              +-- assistant.py     BM25 search (+ optional LLM)
+                                              +-- offline.py       tile cache, package zip
+```
+
+- **Coordinates:** Mars 2000 sphere (R = 3,396,190 m), planetocentric latitude, east-positive longitude, GeoJSON `[lon, lat]`. Never WGS84 or Web Mercator.
+- **Elevation:** the HiRISE DTM is primary; the CTX DEM fills its gaps, shifted by the measured median offset. Slope and roughness come only from these numerical DEMs, never from images or hillshade. NoData stays NaN.
+- **Roughness:** detrended RMS height in a 5x5 window on the ~2 m DEM, taking the max for each 10 m routing cell. It picks up boulder fields and scarp edges.
+- **Route cost = modelled walking time:**
+  - Speed comes from Tobler's hiking function on the *signed* grade of each step (uphill and downhill differ), rescaled to the suited flat speed and reduced for carried load.
+  - Time is multiplied by a roughness factor and a geologic-unit factor (sand/rim, `config/geo_penalties.json`).
+  - Steps steeper than the max grade, and cells steeper or rougher than the limits, are excluded.
+  - Search is A* with an admissible heuristic, 8 directions. It is compiled with numba: about 0.1-0.4 s on a Jezero-sized grid.
+- **Profiles:**
+  - fastest: least time
+  - gentlest: time plus a strong grade penalty
+  - shortest: least distance within the limits
+- **EVA check:** time out + time back + reserve vs the EVA budget.
+- **Warnings (each with rule, value, threshold, location, data basis):**
+  - R1 steep grade
+  - R2 rough ground
+  - R3 flagged geologic unit
+  - R4 low-resolution DEM stretch
+  - R5 EVA budget
+  - R6 point moved to walkable ground
+  - R7 recent SEP activity (DONKI)
+- **Hazard pins:** connected zones over the slope or roughness limit, labelled *model-derived*. They are never a statement that other ground is safe.
+- **Radiation:** the DONKI SEP, flare and CME window is an advisory (near-Earth catalogue). The Curiosity RAD Gale 2012-13 average (0.67 mSv/day, Hassler et al. 2014) is a labelled *reference scale*, never a Jezero or live value.
+
+All EVA numbers are **team assumptions** in `config/eva_defaults.json`. Change them there or in the UI.
+
+## 7. API (all under `/api/v1`)
+
+| Method | Path | Purpose |
+|---|---|---|
+| GET | `/status`, `/health` | online/offline, regions ready, engine |
+| GET | `/regions` | region list, bbox, layers, data date, science goals |
+| GET | `/layers?region_id=` | layer metadata with mission, instrument, units, resolution, processing, limitations |
+| GET | `/regions/{id}/layers/{png}` | overlay image |
+| GET | `/tiles/{layer}/{z}/{y}/{x}` | Mars Trek tile proxy with a disk cache (works offline once cached) |
+| GET | `/terrain/sample?region_id=&lon=&lat=` | elevation, slope, roughness and unit at a point |
+| GET | `/science-sites?region_id=` | curated sites + Perseverance waypoints + traverse |
+| GET | `/hazards?region_id=` | rule-based hazard zones (optional custom limits) |
+| GET | `/validation?region_id=` | planner vs Perseverance's real drives (rover benchmark) |
+| GET | `/eva/defaults` | EVA parameters and their descriptions |
+| POST | `/routes/calculate` | one route (start, stops[], destination, profile, eva overrides) |
+| POST | `/routes/compare` | several profiles side by side |
+| POST/GET | `/missions`, `/missions/{id}`, `/missions/{id}/export?format=geojson\|csv\|json` | save and export |
+| GET | `/space-weather?eva_hours=` | DONKI advisory + RAD reference |
+| GET/POST | `/offline/package?region_id=[&download=true]`, `/offline/prefetch` | package manifest, zip, cache |
+| POST | `/assistant/ask`, `/assistant/reindex` | cited answers from the loaded documents |
+
+Errors are JSON `{"detail": {"code", "message"}}`:
+- 404 `unsupported_region`
+- 422 `outside_region` or a validation error
+- 409 `no_route` or `enclosed`
+
+## 8. Folder map (who owns what)
+
+```
+backend/app/        API + engines            -> Backend B (routing.py, eva.py, main.py), Backend A (prepare.py, processing.py)
+backend/scripts/    data, docs, packaging    -> Backend A / Person 5
+backend/tests/      pytest                   -> everyone: python -m pytest backend/tests -q
+config/             region, EVA, penalties, science sites -> Person 5 + Backend
+frontend/           index.html, app.js, style.css, sw.js -> Frontend A/B (restyle freely; keep the API calls)
+data/               raw/, processed/, cache/, docs/, missions/
+```
+
+## 9. Troubleshooting
+
+- **`pip install` fails on rasterio:** use Python 3.11-3.13 (64-bit) and upgrade pip. Last resort: `conda install -c conda-forge rasterio` in a conda environment.
+- **Black map background:** the Mars Trek tiles need internet, or a cache from `build_offline.bat`. The region overlays work regardless.
+- **`prepare_data.py` says elevation covers <5%:** the bbox is outside the downloaded DEM.
+- **"enclosed" route error:** the point sits in terrain ringed by slopes over the limit. Move it or raise *Max slope*.
+- **First route takes ~3 s:** numba compiles once, and later routes are fast. The compiled code is cached for later runs.
+
+## Limitations (say these out loud)
+
+- This is a prototype planning aid, not a certified navigation or safety system. Route scores are relative.
+- Terrain is resolved at the DEM scale: rocks smaller than about 1-2 m are not seen.
+- The data is dated and nothing is live. There are no dust, lighting or radiation-dose predictions.
+- Walking-speed and load numbers are team assumptions based on an Earth hiking model.

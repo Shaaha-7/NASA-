@@ -1,38 +1,41 @@
-# Raw downloads are large: keep them local (C:\NASA_DATA), never commit them.
-# Only small processed files (data/processed/) go to GitHub.
-data/*
-!data/processed/
-!data/README.md
-data/**/raw/
-*.tif
-*.tiff
-!data/processed/**/*.tif
-*.hdf
-*.HDF
-*.h5
-*.he5
-*.hdf5
-*.nc
-*.nc4
-*.IMG
-*.img
-*.zip
-*.tar
-*.gz
+# Python environments and caches
+.venv/
+venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ipynb_checkpoints/
 
-# Secrets: never commit logins or tokens
+# Private keys (NASA_API_KEY, ANTHROPIC_API_KEY): never commit
+local_keys.bat
 .env
 .netrc
 _netrc
 *.token
 
-# Python / Node
-__pycache__/
-*.pyc
-.venv/
-venv/
-node_modules/
-.ipynb_checkpoints/
+# Data: raw NASA/USGS downloads are GBs; everything under data/ is rebuilt locally
+data/raw/
+data/test_raw/
+data/processed/
+data/cache/
+data/missions/
+data/docs/*.pdf
+data/docs/*.html
+data/docs/*.txt
+!data/docs/README.md
+!data/docs/docs_sources.json
+
+# Large binary formats anywhere
+*.tif
+*.tiff
+*.hdf
+*.HDF
+*.h5
+*.hdf5
+*.nc
+*.zip
+*.img
+*.IMG
 
 # OS / editor
 .DS_Store

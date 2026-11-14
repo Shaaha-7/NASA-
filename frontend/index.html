@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MarsPath - Marswalk planner</title>
+<link rel="stylesheet" href="vendor/leaflet.css">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <strong>MarsPath</strong>
+  <select id="region"></select>
+  <span id="netBadge" class="badge">checking...</span>
+  <span id="fixtureBadge" class="badge warn hidden">TEST FIXTURE - synthetic terrain</span>
+  <a href="/docs" target="_blank" class="right">API docs</a>
+</header>
+
+<main>
+<aside id="side">
+
+  <details open>
+    <summary>1. Mission setup</summary>
+    <div class="row">
+      <button data-mode="start">Set start</button>
+      <button data-mode="stop">Add stop</button>
+      <button data-mode="end">Set destination</button>
+      <button id="clearPts" class="ghost">Clear</button>
+    </div>
+    <p id="modeHint" class="hint">Pick a button, then click the map. Click the map with no button selected to read the terrain there.</p>
+    <ol id="ptList"></ol>
+    <label>Route profile
+      <select id="profile">
+        <option value="fastest">Fastest (least walking time)</option>
+        <option value="gentlest">Gentlest (avoid steep grades)</option>
+        <option value="shortest">Shortest distance</option>
+      </select>
+    </label>
+    <label class="chk"><input id="optOrder" type="checkbox" checked> Optimise stop order (start and destination stay fixed)</label>
+    <details class="sub">
+      <summary>EVA settings (team assumptions)</summary>
+      <div class="grid2">
+        <label>Max slope (deg) <input id="e_max_slope_deg" type="number" step="1"></label>
+        <label>Caution slope (deg) <input id="e_caution_slope_deg" type="number" step="1"></label>
+        <label>Flat speed (km/h) <input id="e_flat_speed_kmh" type="number" step="0.1"></label>
+        <label>EVA length (h) <input id="e_eva_hours" type="number" step="0.5"></label>
+        <label>Load (kg) <input id="e_load_kg" type="number" step="1"></label>
+        <label>Reserve (0-0.9) <input id="e_reserve_fraction" type="number" step="0.05"></label>
+        <label>Max roughness (m) <input id="e_roughness_max_m" type="number" step="0.1"></label>
+        <label class="chk"><input id="e_round_trip" type="checkbox"> Must walk back</label>
+      </div>
+    </details>
+    <div class="row">
+      <button id="calcBtn" class="primary">Calculate route</button>
+      <button id="cmpBtn">Compare profiles</button>
+    </div>
+    <div id="routeMsg" class="msg"></div>
+  </details>
+
+  <details open id="resultsBox" class="hidden">
+    <summary>2. Route result</summary>
+    <div id="metrics" class="metrics"></div>
+    <div id="budget"></div>
+    <div id="profileChart"></div>
+    <h4>Warnings</h4>
+    <ul id="warnings" class="warnlist"></ul>
+    <div id="compare"></div>
+    <details class="sub"><summary>Data sources, assumptions, limitations</summary><div id="provenance"></div></details>
+    <div class="row">
+      <input id="missionName" placeholder="Mission name" value="Marswalk 1">
+      <button id="saveMission">Save mission</button>
+    </div>
+    <div id="missionLinks" class="hint"></div>
+  </details>
+
+  <details>
+    <summary>3. Map layers</summary>
+    <div id="layers"></div>
+  </details>
+
+  <details>
+    <summary>4. Radiation &amp; space weather</summary>
+    <div id="spaceWeather" class="hint">Loading...</div>
+    <button id="swRefresh" class="ghost">Refresh (needs internet)</button>
+  </details>
+
+  <details>
+    <summary>5. Science goals &amp; pins</summary>
+    <div id="goals"></div>
+  </details>
+
+  <details>
+    <summary>6. Science assistant</summary>
+    <div class="row"><input id="askQ" placeholder="What do we know about this area?"><button id="askBtn">Ask</button></div>
+    <div id="askOut"></div>
+  </details>
+
+  <details>
+    <summary>7. Offline package</summary>
+    <div id="offlineInfo" class="hint"></div>
+    <div class="row">
+      <button id="prefetchBtn">Cache for offline (online only)</button>
+      <a id="zipLink" class="button ghost" href="#">Download package zip</a>
+    </div>
+  </details>
+</aside>
+
+<div id="map"></div>
+</main>
+
+<div id="toast" class="hidden"></div>
+<script src="vendor/leaflet.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,286 @@
+{
+  "type": "FeatureCollection",
+  "name": "Jezero science sites (verified)",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.4508857,
+          18.4446271
+        ]
+      },
+      "properties": {
+        "id": "site-01",
+        "kind": "science_site",
+        "name": "Octavia E. Butler Landing",
+        "goal_id": "context",
+        "observation": "Perseverance touchdown site, informally named Octavia E. Butler Landing by the science team.",
+        "mission": "Mars 2020",
+        "instrument": "Rover localization",
+        "observation_date": "sol 0 (2021-02-18)",
+        "why_it_matters": "Start point of the mission and a natural EVA start/return point on flat crater-floor terrain.",
+        "source": "NASA/JPL PIA24483, Welcome to Octavia E. Butler Landing",
+        "source_url": "https://photojournal.jpl.nasa.gov/catalog/PIA24483",
+        "measured_or_derived": "measured (rover localization and published sample records)",
+        "position_basis": "Perseverance localization RMC 3_0 (sol 13), last waypoint on or before sol 0; accurate to the rover's workspace (a few metres)",
+        "position_source_url": "https://mars.nasa.gov/mmgis-maps/M20/Layers/json/M20_waypoints.json",
+        "rover_elevation_m": -2569.91,
+        "sample_record_url": "https://science.nasa.gov/mission/mars-2020-perseverance/mars-rock-samples/"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.4443657,
+          18.4307394
+        ]
+      },
+      "properties": {
+        "id": "site-02",
+        "kind": "science_site",
+        "name": "Rochette (Montdenier, Montagnac cores)",
+        "goal_id": "context",
+        "observation": "Site of Perseverance's first two rock cores, Montdenier and Montagnac, from the crater-floor rock called Rochette (basalt or basaltic sandstone in NASA's sample table).",
+        "mission": "Mars 2020",
+        "instrument": "Sampling and Caching System; PIXL; SHERLOC",
+        "observation_date": "sol 194 (2021-09-06)",
+        "why_it_matters": "First cored rocks of the mission: igneous crater-floor context for the walk.",
+        "source": "NASA Science, A Historic Moment: Perseverance collects its first two rock samples",
+        "source_url": "https://science.nasa.gov/missions/mars-2020-perseverance/a-historic-moment-perseverance-collects-seals-and-stores-its-first-two-rock-samples",
+        "measured_or_derived": "measured (rover localization and published sample records)",
+        "position_basis": "Perseverance localization RMC 7_0 (sol 180), last waypoint on or before sol 194; accurate to the rover's workspace (a few metres)",
+        "position_source_url": "https://mars.nasa.gov/mmgis-maps/M20/Layers/json/M20_waypoints.json",
+        "rover_elevation_m": -2574.52,
+        "sample_record_url": "https://science.nasa.gov/mission/mars-2020-perseverance/mars-rock-samples/"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.4430192,
+          18.4339641
+        ]
+      },
+      "properties": {
+        "id": "site-03",
+        "kind": "science_site",
+        "name": "Brac outcrop, Seitah (Salette, Coulettes cores)",
+        "goal_id": "G2",
+        "observation": "Olivine cumulate rock in the Seitah formation; cores Salette (sol 262) and Coulettes (sol 271).",
+        "mission": "Mars 2020",
+        "instrument": "PIXL; SHERLOC; SuperCam; Sampling and Caching System",
+        "observation_date": "sol 262",
+        "why_it_matters": "Olivine-rich igneous rock of the Seitah unit: direct target for goal G2.",
+        "source": "Weiss et al. 2024, Earth and Space Science (sol table); Liu et al. 2022, Science (olivine cumulate)",
+        "source_url": "https://agupubs.onlinelibrary.wiley.com/doi/10.1029/2023EA003322",
+        "measured_or_derived": "measured (rover localization and published sample records)",
+        "position_basis": "Perseverance localization RMC 8_0 (sol 248), last waypoint on or before sol 262; accurate to the rover's workspace (a few metres)",
+        "position_source_url": "https://mars.nasa.gov/mmgis-maps/M20/Layers/json/M20_waypoints.json",
+        "rover_elevation_m": -2569.15,
+        "sample_record_url": "https://science.nasa.gov/mission/mars-2020-perseverance/mars-rock-samples/"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.441373,
+          18.4326606
+        ]
+      },
+      "properties": {
+        "id": "site-04",
+        "kind": "science_site",
+        "name": "Issole, Seitah (Robine core)",
+        "goal_id": "G2",
+        "observation": "Olivine cumulate rock in South Seitah; core Robine.",
+        "mission": "Mars 2020",
+        "instrument": "Sampling and Caching System",
+        "observation_date": "sol 298 (2021-12-22)",
+        "why_it_matters": "Second Seitah sampling site: compare olivine-rich rock along the walk.",
+        "source": "NASA Mars 2020: Mars Rock Samples",
+        "source_url": "https://science.nasa.gov/mission/mars-2020-perseverance/mars-rock-samples/",
+        "measured_or_derived": "measured (rover localization and published sample records)",
+        "position_basis": "Perseverance localization RMC 9_0 (sol 286), last waypoint on or before sol 298; accurate to the rover's workspace (a few metres)",
+        "position_source_url": "https://mars.nasa.gov/mmgis-maps/M20/Layers/json/M20_waypoints.json",
+        "rover_elevation_m": -2574.44,
+        "sample_record_url": "https://science.nasa.gov/mission/mars-2020-perseverance/mars-rock-samples/"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.4061677,
+          18.4588953
+        ]
+      },
+      "properties": {
+        "id": "site-05",
+        "kind": "science_site",
+        "name": "Skinner Ridge, delta front (Swift Run, Skyland cores)",
+        "goal_id": "G3",
+        "observation": "First sedimentary cores of the mission, Swift Run (sol 490) and Skyland (sol 495), at the base of the western fan; the rover arrived on sol 477.",
+        "mission": "Mars 2020",
+        "instrument": "Sampling and Caching System; Mastcam-Z; SuperCam",
+        "observation_date": "sol 490",
+        "why_it_matters": "Layered sedimentary rock at the fan front: the base of the delta stratigraphy for goal G3.",
+        "source": "Bosak et al. 2024, AGU Advances, Astrobiological potential of rocks at a sedimentary fan front",
+        "source_url": "https://agupubs.onlinelibrary.wiley.com/doi/full/10.1029/2024AV001241",
+        "measured_or_derived": "measured (rover localization and published sample records)",
+        "position_basis": "Perseverance localization RMC 26_1004 (sol 477), last waypoint on or before sol 490; accurate to the rover's workspace (a few metres)",
+        "position_source_url": "https://mars.nasa.gov/mmgis-maps/M20/Layers/json/M20_waypoints.json",
+        "rover_elevation_m": -2520.85,
+        "sample_record_url": "https://science.nasa.gov/mission/mars-2020-perseverance/mars-rock-samples/"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.4059249,
+          18.4586473
+        ]
+      },
+      "properties": {
+        "id": "site-06",
+        "kind": "science_site",
+        "name": "Wildcat Ridge, delta front (Hazeltop, Bearwallow cores)",
+        "goal_id": "G1",
+        "observation": "Fine-grained, sulfate-bearing mudstone; SHERLOC recorded the mission's most abundant organic detections to that date, spatially correlated with sulfate minerals. Cores Hazeltop (sol 509) and Bearwallow (sol 516).",
+        "mission": "Mars 2020",
+        "instrument": "SHERLOC; PIXL; Sampling and Caching System",
+        "observation_date": "sol 509",
+        "why_it_matters": "Organic molecules in a lake-deposited mudstone make it a priority biosignature target (organics with sulfates, not carbonate).",
+        "source": "NASA/JPL, NASA's Perseverance Rover Investigates Geologically Rich Mars Terrain",
+        "source_url": "https://www.jpl.nasa.gov/news/nasas-perseverance-rover-investigates-geologically-rich-mars-terrain/",
+        "measured_or_derived": "measured (rover localization and published sample records)",
+        "position_basis": "Perseverance localization RMC 26_1222 (sol 502), last waypoint on or before sol 509; accurate to the rover's workspace (a few metres)",
+        "position_source_url": "https://mars.nasa.gov/mmgis-maps/M20/Layers/json/M20_waypoints.json",
+        "rover_elevation_m": -2523.17,
+        "sample_record_url": "https://science.nasa.gov/mission/mars-2020-perseverance/mars-rock-samples/"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.4014403,
+          18.4507263
+        ]
+      },
+      "properties": {
+        "id": "site-07",
+        "kind": "science_site",
+        "name": "Amalik outcrop, delta front (Shuyak core)",
+        "goal_id": "G3",
+        "observation": "Delta-front sedimentary outcrop; core Shuyak.",
+        "mission": "Mars 2020",
+        "instrument": "Sampling and Caching System; Mastcam-Z",
+        "observation_date": "sol 574 (2022-10-02)",
+        "why_it_matters": "Another layer of the fan-front sediments, a short walk from Skinner Ridge and Wildcat Ridge.",
+        "source": "NASA Mars 2020 mission status: Perseverance activities at Amalik outcrop",
+        "source_url": "https://mars.nasa.gov/mars2020/mission/status/415/perseverance-activities-at-amalik-outcrop",
+        "measured_or_derived": "measured (rover localization and published sample records)",
+        "position_basis": "Perseverance localization RMC 29_0 (sol 565), last waypoint on or before sol 574; accurate to the rover's workspace (a few metres)",
+        "position_source_url": "https://mars.nasa.gov/mmgis-maps/M20/Layers/json/M20_waypoints.json",
+        "rover_elevation_m": -2526.53,
+        "sample_record_url": "https://science.nasa.gov/mission/mars-2020-perseverance/mars-rock-samples/"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.407756,
+          18.4526265
+        ]
+      },
+      "properties": {
+        "id": "site-08",
+        "kind": "science_site",
+        "name": "Three Forks sample depot",
+        "goal_id": "context",
+        "observation": "Ten sample tubes left on the surface between sols 653 and 690 for possible future return to Earth.",
+        "mission": "Mars 2020",
+        "instrument": "Sampling and Caching System",
+        "observation_date": "sol 653",
+        "why_it_matters": "Mapped depot of cached samples near the base of the delta: a known, flat waypoint.",
+        "source": "NASA, NASA's Perseverance Rover Completes Mars Sample Depot",
+        "source_url": "https://www.nasa.gov/missions/mars-2020-perseverance/perseverance-rover/nasas-perseverance-rover-completes-mars-sample-depot/",
+        "measured_or_derived": "measured (rover localization and published sample records)",
+        "position_basis": "Perseverance localization RMC 32_148 (sol 652), last waypoint on or before sol 653; accurate to the rover's workspace (a few metres)",
+        "position_source_url": "https://mars.nasa.gov/mmgis-maps/M20/Layers/json/M20_waypoints.json",
+        "rover_elevation_m": -2545.26,
+        "sample_record_url": "https://science.nasa.gov/mission/mars-2020-perseverance/mars-rock-samples/"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.3839878,
+          18.4702116
+        ]
+      },
+      "properties": {
+        "id": "site-09",
+        "kind": "science_site",
+        "name": "Berea, upper fan (Melyn core)",
+        "goal_id": "G3",
+        "observation": "Sandstone on the upper fan; core Melyn, the first sample after the depot was completed.",
+        "mission": "Mars 2020",
+        "instrument": "Sampling and Caching System",
+        "observation_date": "sol 749 (2023-03-30)",
+        "why_it_matters": "Upper part of the fan: compare with the fan-front layers to read the delta's history.",
+        "source": "NASA Mars 2020: Mars Rock Samples",
+        "source_url": "https://science.nasa.gov/mission/mars-2020-perseverance/mars-rock-samples/",
+        "measured_or_derived": "measured (rover localization and published sample records)",
+        "position_basis": "Perseverance localization RMC 37_0 (sol 736), last waypoint on or before sol 749; accurate to the rover's workspace (a few metres)",
+        "position_source_url": "https://mars.nasa.gov/mmgis-maps/M20/Layers/json/M20_waypoints.json",
+        "rover_elevation_m": -2449.08,
+        "sample_record_url": "https://science.nasa.gov/mission/mars-2020-perseverance/mars-rock-samples/"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.3506942,
+          18.4834427
+        ]
+      },
+      "properties": {
+        "id": "site-10",
+        "kind": "science_site",
+        "name": "Hans Amundsen Memorial Workspace, margin unit (Pelican Point core)",
+        "goal_id": "G1",
+        "observation": "Core Pelican Point from the margin unit along the inner crater rim; orbital spectra map carbonate-bearing rocks along this crater margin.",
+        "mission": "Mars 2020",
+        "instrument": "Sampling and Caching System (sample); MRO CRISM (orbital carbonate mapping)",
+        "observation_date": "sol 921 (2023-09-23)",
+        "why_it_matters": "Marginal carbonates are a biosignature target for goal G1.",
+        "source": "NASA Mars Rock Samples (core); Zastrow & Glotch 2021, GRL (margin carbonates from orbit)",
+        "source_url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC8243932",
+        "measured_or_derived": "measured (rover localization and published sample records)",
+        "position_basis": "Perseverance localization RMC 45_0 (sol 911), last waypoint on or before sol 921; accurate to the rover's workspace (a few metres)",
+        "position_source_url": "https://mars.nasa.gov/mmgis-maps/M20/Layers/json/M20_waypoints.json",
+        "rover_elevation_m": -2423.31,
+        "sample_record_url": "https://science.nasa.gov/mission/mars-2020-perseverance/mars-rock-samples/"
+      }
+    }
+  ]
+}

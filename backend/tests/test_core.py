@@ -1,0 +1,212 @@
+"""Core tests. Run from the project root:  python -m pytest backend/tests -q
+They use small in-memory grids and the synthetic region (built automatically if missing)."""
+import json
+import math
+import subprocess
+import sys
+from pathlib import Path
+
+import numpy as np
+import pytest
+
+ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT / "backend"))
+
+from app import assistant, config  # noqa: E402
+from app.eva import EvaParams  # noqa: E402
+from app.geo import Grid, haversine_m, MARS_RADIUS_M  # noqa: E402
+from app.processing import roughness_m, slope_deg, detect_hazards  # noqa: E402
+
+
+@pytest.fixture(scope="session")
+def synthetic():
+    if not (config.PROCESSED_DIR / "synthetic" / "manifest.json").exists():
+        subprocess.run([sys.executable, str(ROOT / "backend/scripts/make_synthetic.py")], check=True)
+        subprocess.run([sys.executable, str(ROOT / "backend/scripts/prepare_data.py"), "synthetic"], check=True)
+    from app.region_store import get_region
+    return get_region("synthetic")
+
+
+# ---------------------------------------------------------------- geometry / units
+
+def test_grid_metres():
+    g = Grid.from_bbox(77.35, 18.38, 77.50, 18.50, 10)
+    assert abs(g.dy_m - 10) < 0.01
+    assert abs(g.dx_m_rows().mean() - 10) < 0.05
+    lon, lat = g.center_of(*g.cell_of(77.4, 18.45))
+    assert abs(lon - 77.4) < g.dlon and abs(lat - 18.45) < g.dlat
+
+
+def test_haversine_one_degree_lat():
+    assert abs(haversine_m(0, 0, 0, 1) - math.pi * MARS_RADIUS_M / 180) < 1
+
+
+def test_slope_of_known_ramp():
+    g = Grid.from_bbox(0, 0, 0.02, 0.02, 10)
+    x = np.arange(g.width) * g.dx_m_rows()[0]
+    z = np.tile(x * math.tan(math.radians(20)), (g.height, 1))
+    s = slope_deg(z, g)
+    assert abs(np.median(s) - 20) < 0.2
+
+
+def test_nodata_stays_nan():
+    g = Grid.from_bbox(0, 0, 0.01, 0.01, 10)
+    z = np.zeros((g.height, g.width))
+    z[5, 5] = np.nan
+    assert np.isnan(slope_deg(z, g)[5, 5])
+    assert np.isnan(roughness_m(z)[5, 5])
+
+
+def test_hazard_detection_finds_steep_block():
+    g = Grid.from_bbox(0, 0, 0.05, 0.05, 10)
+    slope = np.zeros((g.height, g.width))
+    slope[100:130, 100:130] = 40
+    hz = detect_hazards(slope, np.zeros_like(slope), g, 25, 1.5)
+    assert len(hz) == 1 and hz[0]["properties"]["type"] == "steep_slope"
+    w, s, e, n = hz[0]["properties"]["bbox"]
+    assert w < e and s < n
+
+# ---------------------------------------------------------------- EVA model
+
+def test_tobler_shape():
+    e = EvaParams()
+    assert abs(e.speed_ms(0) - e.flat_speed_ms) < 1e-9
+    assert e.speed_ms(-0.05) > e.speed_ms(0) > e.speed_ms(0.2)
+    assert e.speed_ms(0.3) < e.speed_ms(-0.3)  # uphill slower than the same downhill
+
+
+def test_eva_validation():
+    with pytest.raises(ValueError):
+        EvaParams().merged({"max_slope_deg": 90})
+
+# ---------------------------------------------------------------- routing
+
+def test_route_detours_around_wall(synthetic):
+    from app.routing import compute_route
+    eva = EvaParams.defaults()
+    r = compute_route(synthetic, [(120.005, 10.012), (120.01, 10.09)], eva, "fastest")
+    assert r["distance_km"] > r["straight_line_km"] * 1.1  # must go around the scarp
+    assert r["max_slope_deg"] <= eva.max_slope_deg + 1e-6
+    assert r["geometry"]["type"] == "LineString" and len(r["geometry"]["coordinates"]) >= 2
+    lon, lat = r["geometry"]["coordinates"][0]
+    assert 120.0 <= lon <= 120.12 and 10.0 <= lat <= 10.1  # GeoJSON [lon, lat]
+    assert r["is_test_fixture"] is True
+
+
+def test_profiles_trade_off(synthetic):
+    from app.routing import compute_route
+    eva = EvaParams.defaults()
+    pts = [(120.005, 10.012), (120.01, 10.09)]
+    fast = compute_route(synthetic, pts, eva, "fastest")
+    gentle = compute_route(synthetic, pts, eva, "gentlest")
+    short = compute_route(synthetic, pts, eva, "shortest")
+    assert short["distance_km"] <= fast["distance_km"] + 1e-6
+    assert fast["duration_min"] <= short["duration_min"] + 1e-6
+    assert gentle["max_slope_deg"] <= fast["max_slope_deg"] + 1e-6
+
+
+def test_enclosed_point_is_explained(synthetic):
+    from app.routing import compute_route, RouteError
+    with pytest.raises(RouteError) as ei:
+        compute_route(synthetic, [(120.005, 10.012), (120.0926, 10.028)], EvaParams.defaults())
+    assert ei.value.code == "enclosed"
+
+
+def test_outside_region(synthetic):
+    from app.routing import compute_route, RouteError
+    with pytest.raises(RouteError) as ei:
+        compute_route(synthetic, [(10, 10), (120.01, 10.09)], EvaParams.defaults())
+    assert ei.value.code == "outside_region"
+
+
+def test_budget_warning(synthetic):
+    from app.routing import compute_route
+    eva = EvaParams.defaults().merged({"eva_hours": 1})
+    r = compute_route(synthetic, [(120.005, 10.012), (120.01, 10.09)], eva)
+    assert not r["eva"]["within_budget"]
+    assert any(w["rule_id"] == "R5_EVA_BUDGET" and w["severity"] == "warning" for w in r["warnings"])
+
+# ---------------------------------------------------------------- assistant
+
+def test_assistant_retrieval(tmp_path):
+    (tmp_path / "a.txt").write_text("Jezero crater hosts a delta. Carbonate minerals occur near the crater margin. " * 5)
+    (tmp_path / "b.txt").write_text("Gale crater radiation was measured by the RAD instrument on Curiosity. " * 5)
+    (tmp_path / "docs.json").write_text(json.dumps([
+        {"file": "a.txt", "title": "A", "url": "http://a", "date": "2020", "licence": "pd"},
+        {"file": "b.txt", "title": "B", "url": "http://b", "date": "2014", "licence": "pd"}]))
+    out = tmp_path / "idx.json"
+    assistant.build_index(tmp_path, out)
+    import json as _j
+    idx = _j.loads(out.read_text())
+    hits = assistant.search("carbonate near the margin", idx=idx)
+    assert hits and hits[0]["title"] == "A"
+
+# ---------------------------------------------------------------- API
+
+def test_api_end_to_end(synthetic, monkeypatch):
+    monkeypatch.setattr(config, "FORCE_OFFLINE", True)
+    from fastapi.testclient import TestClient
+    from app.main import app
+    c = TestClient(app)
+    assert c.get("/api/v1/regions").status_code == 200
+    lay = c.get("/api/v1/layers?region_id=synthetic").json()["layers"]
+    assert all("source" in l or "source_url" in l for l in lay)
+    body = {"region_id": "synthetic", "start": {"lon": 120.005, "lat": 10.012},
+            "destination": {"lon": 120.01, "lat": 10.09}, "profile": "gentlest"}
+    r = c.post("/api/v1/routes/calculate", json=body)
+    assert r.status_code == 200
+    j = r.json()
+    for k in ("route_id", "geometry", "distance_km", "max_slope_deg", "elevation_profile", "warnings",
+              "data_sources", "assumptions", "limitations", "offline"):
+        assert k in j
+    assert j["offline"] is True
+    assert c.post("/api/v1/routes/calculate", json={**body, "region_id": "nope"}).status_code == 404
+    assert c.post("/api/v1/routes/calculate", json={**body, "start": {"lon": 0, "lat": 99}}).status_code == 422
+    m = c.post("/api/v1/missions", json={"name": "t", "region_id": "synthetic", "route": j}).json()
+    assert c.get(f"/api/v1/missions/{m['mission_id']}/export?format=geojson").status_code == 200
+    (config.MISSIONS_DIR / f"{m['mission_id']}.json").unlink()
+
+
+def test_stop_order_optimisation(synthetic):
+    from app.routing import optimise_stop_order
+    eva = EvaParams.defaults().merged({"eva_hours": 10})
+    pts = [(120.005, 10.012), (120.07, 10.03), (120.02, 10.03), (120.06, 10.045), (120.03, 10.02), (120.012, 10.085)]
+    o = optimise_stop_order(synthetic, pts, eva)
+    assert sorted(o["order"]) == [0, 1, 2, 3]
+    assert o["cost_optimised"] <= o["cost_as_given"]
+
+
+def test_space_weather_errors_never_show_the_api_key():
+    from app.spaceweather import _clean
+    msg = ("Client error '404 Not Found' for url "
+           "'https://api.nasa.gov/DONKI/FLR?startDate=2026-10-15&endDate=2026-11-14&api_key=SECRET123'")
+    out = _clean(msg)
+    assert "SECRET123" not in out and "api_key" not in out
+    assert "api.nasa.gov/DONKI/FLR" in out
+
+
+def test_curated_science_sites_are_sourced():
+    """Every curated science stop must cite a source and sit inside its region's study box."""
+    folder = config.CONFIG_DIR / "science_sites"
+    for f in folder.glob("*.geojson"):
+        if "TEMPLATE" in f.name:
+            continue
+        region = config.region_config(f.stem)
+        if region and region.get("is_test_fixture"):
+            continue  # synthetic test region: labelled TEST FIXTURE, no real source by design
+        bbox = region["bbox"] if region else None
+        for feat in json.loads(f.read_text(encoding="utf-8"))["features"]:
+            p = feat["properties"]
+            assert p.get("source") and str(p.get("source_url", "")).startswith("https://"), p.get("id")
+            lon, lat = feat["geometry"]["coordinates"][:2]
+            if bbox:
+                assert bbox["west"] <= lon <= bbox["east"] and bbox["south"] <= lat <= bbox["north"], p.get("id")
+
+
+def test_validation_endpoint_without_benchmark(synthetic):
+    from fastapi.testclient import TestClient
+    from app.main import app
+    r = TestClient(app).get("/api/v1/validation", params={"region_id": "synthetic"})
+    assert r.status_code in (200, 404)
+    if r.status_code == 404:
+        assert r.json()["detail"]["code"] == "not_available"

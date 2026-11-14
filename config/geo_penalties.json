@@ -1,0 +1,47 @@
+{
+  "_note": "Walking-cost multipliers per geologic unit, matched by case-insensitive keyword in the unit name. TEAM ASSUMPTIONS. A multiplier of 1.5 means a step there costs 1.5x the time. Units with no match get 1.0.",
+  "rules": [
+    {
+      "keyword": "aeolian",
+      "multiplier": 1.5,
+      "flag": "soft_sand",
+      "reason": "Wind-blown deposits may be loose sand"
+    },
+    {
+      "keyword": "dune",
+      "multiplier": 1.6,
+      "flag": "soft_sand",
+      "reason": "Dunes and ripples may be loose sand"
+    },
+    {
+      "keyword": "bedform",
+      "multiplier": 1.5,
+      "flag": "soft_sand",
+      "reason": "Bedforms may be loose sand"
+    },
+    {
+      "keyword": "sand",
+      "multiplier": 1.5,
+      "flag": "soft_sand",
+      "reason": "Mapped as sand"
+    },
+    {
+      "keyword": "rim",
+      "multiplier": 1.2,
+      "flag": "rugged",
+      "reason": "Crater rim terrain is usually rugged"
+    },
+    {
+      "keyword": "riim",
+      "multiplier": 1.2,
+      "flag": "rugged",
+      "reason": "Crater rim terrain is usually rugged (unit name spelled 'riim' in the source map)"
+    },
+    {
+      "keyword": "rugged",
+      "multiplier": 1.2,
+      "flag": "rugged",
+      "reason": "Mapped as rugged"
+    }
+  ]
+}

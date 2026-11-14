@@ -1,0 +1,15 @@
+{
+  "_note": "Every value here is a TEAM ASSUMPTION for a prototype planning aid, not a NASA requirement or a certified limit. Change them here or per request from the UI.",
+  "max_slope_deg":        { "value": 25,   "unit": "deg",  "label": "Steepest grade a suited walker may take (uphill or downhill)", "basis": "Team assumption" },
+  "caution_slope_deg":    { "value": 15,   "unit": "deg",  "label": "Grade above which a caution flag is raised", "basis": "Team assumption" },
+  "flat_speed_kmh":       { "value": 3.0,  "unit": "km/h", "label": "Suited walking speed on flat, smooth ground", "basis": "Team assumption" },
+  "eva_hours":            { "value": 4.0,  "unit": "h",    "label": "EVA time budget (outbound + return)", "basis": "Team assumption" },
+  "reserve_fraction":     { "value": 0.25, "unit": "",     "label": "Fraction of the EVA budget held back as reserve", "basis": "Team assumption" },
+  "load_kg":              { "value": 20,   "unit": "kg",   "label": "Carried equipment / sample load", "basis": "Team assumption" },
+  "load_speed_penalty_per_10kg": { "value": 0.05, "unit": "", "label": "Fractional speed loss per 10 kg carried", "basis": "Team assumption (placeholder until a sourced model is chosen)" },
+  "roughness_ref_m":      { "value": 0.5,  "unit": "m",    "label": "Roughness at which walking speed halves", "basis": "Team assumption" },
+  "roughness_max_m":      { "value": 1.5,  "unit": "m",    "label": "Roughness above which a cell is treated as impassable", "basis": "Team assumption" },
+  "roughness_caution_m":  { "value": 0.75, "unit": "m",    "label": "Roughness above which a caution flag is raised", "basis": "Team assumption" },
+  "round_trip":           { "value": true, "unit": "",     "label": "Plan must allow walking back to the start within the budget", "basis": "Team assumption" },
+  "speed_model":          { "value": "tobler", "unit": "", "label": "Speed vs grade: Tobler (1993) hiking function, rescaled so speed on flat ground = flat_speed_kmh", "basis": "Tobler's function is an Earth hiking model; its use for suited Mars walking is an assumption" }
+}
