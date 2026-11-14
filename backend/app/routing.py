@@ -21,7 +21,8 @@ import numpy as np
 from scipy import ndimage
 
 from .eva import EvaParams, TOBLER_K, TOBLER_OPT
-from .geo import Grid, haversine_m
+from . import directions
+from .geo import MARS_RADIUS_M, Grid, haversine_m
 from .region_store import Region
 
 try:  # numba makes A* ~50x faster; the pure-Python path gives identical results.
@@ -343,6 +344,19 @@ def compute_route(region: Region, points: list[tuple[float, float]], eva: EvaPar
 
     warnings = _warnings(region, eva, cells, lonlat, cum_d, grade_deg, rough_cells, need_min, out_min, back_min, stops)
 
+    # turn-by-turn EVA directions from the same arrays as the metrics
+    unit_table = {u["code"]: u["name"] for u in region.manifest.get("units", [])}
+    unit_names = [unit_table.get(int(u)) for u in region.units_flat[cells]]
+    try:
+        sites = region.read_geojson("science_sites.geojson").get("features", [])
+    except Exception:
+        sites = []
+    try:
+        steps = directions.build(lonlat, cum_d, cum_t, z, grade_deg, unit_names, [b for _, b in leg_bounds],
+                                 [s["name"] for s in stops], sites, warnings, MARS_RADIUS_M)
+    except Exception as e:  # directions are an add-on: never fail the route because of them
+        steps = [{"step": 0, "instruction": f"Directions unavailable: {e}"}]
+
     keep = {b for _, b in leg_bounds}
     simp = _simplify(cells, W, keep)
     coords = [[round(lonlat[i][0], 7), round(lonlat[i][1], 7)] for i in simp]
@@ -388,6 +402,7 @@ def compute_route(region: Region, points: list[tuple[float, float]], eva: EvaPar
         "elevation_min_m": round(float(finite_z.min()), 1),
         "elevation_max_m": round(float(finite_z.max()), 1),
         "elevation_profile": profile_pts,
+        "directions": steps,
         "warnings": warnings,
         "data_sources": data_sources,
         "grid_resolution_m": round(g.mean_res_m, 1),

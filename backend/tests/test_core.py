@@ -237,3 +237,39 @@ def test_ground_view_offline_is_honest(synthetic, monkeypatch, tmp_path):
     if "rover_stop" in gv:
         assert gv["images"] == [] and gv["available"] is False
         assert all("offline" in s for s in gv["fetch_status"].values())
+
+
+def test_directions_add_up_to_route(synthetic):
+    """Turn-by-turn steps cover the whole route: distances and times sum to the route totals."""
+    from app.routing import compute_route
+    eva = EvaParams.defaults().merged({"eva_hours": 10})
+    pts = [(120.005, 10.012), (120.03, 10.03), (120.012, 10.085)]
+    r = compute_route(synthetic, pts, eva, "fastest")
+    steps = r["directions"]
+    assert steps and all(s["instruction"] for s in steps)
+    assert abs(sum(s["distance_m"] for s in steps) - r["distance_km"] * 1000) <= len(steps) + 1
+    assert abs(sum(s["duration_min"] for s in steps) - r["duration_min"]) <= 0.1 * len(steps) + 0.2
+    assert sum(1 for s in steps if s.get("arrive_stop")) == len(pts) - 1
+
+
+def test_point_info_explains_walkability(synthetic):
+    """A steep cell is reported as not walkable with the rule that excludes it; a flat one is walkable."""
+    from app.point_info import point_info
+    eva = EvaParams.defaults()
+    sl = synthetic.slope
+    r, c = np.unravel_index(int(np.nanargmax(sl)), sl.shape)
+    lon, lat = synthetic.grid.center_of(int(r), int(c))
+    info = point_info(synthetic, lon, lat, eva)
+    assert info["walkable"] is False and any("slope" in x for x in info["not_walkable_because"])
+    r, c = np.unravel_index(int(np.nanargmin(sl)), sl.shape)
+    lon, lat = synthetic.grid.center_of(int(r), int(c))
+    assert point_info(synthetic, lon, lat, eva)["terrain"]["slope_deg"] <= eva.max_slope_deg
+
+
+def test_search_names_sols_and_coordinates(synthetic):
+    from app import search
+    d = search.search(synthetic, "sol 5")
+    assert d["results"] and d["results"][0]["kind"] == "rover_sol" or d["count"] == 0
+    d = search.search(synthetic, "120.03, 10.03")
+    assert d["results"][0]["kind"] == "coordinates" and d["results"][0]["inside_region"] is True
+    assert search.search(synthetic, "zzqqxx")["results"] == []

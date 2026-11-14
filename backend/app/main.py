@@ -17,11 +17,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse, RedirectResponse, Response
 from fastapi.staticfiles import StaticFiles
 
-from . import assistant, config, netutil, offline, rover_images, spaceweather
+from . import assistant, config, netutil, offline, rover_images, search, spaceweather
 from .eva import EvaParams
 from .geo import COORDINATE_CONVENTION, validate_lonlat
 from .region_store import available_region_ids, get_region
 from .routing import HAVE_NUMBA, PROFILES, RouteError, compute_route, optimise_stop_order
+from .point_info import point_info
 from .reachability import compute_reachability
 from .schemas import AskRequest, CompareRequest, MissionRequest, ReachabilityRequest, RouteRequest
 
@@ -136,6 +137,35 @@ def terrain_sample(region_id: str, lon: float, lat: float):
     s["source"] = r.manifest["sources"].get("dem_primary" if s["dem_source"] == "primary" else "dem_fallback", {}).get("label")
     s["is_test_fixture"] = r.is_test_fixture
     return s
+
+
+@app.get(f"{API}/search")
+def search_endpoint(region_id: str, q: str, limit: int = 10):
+    """Find official place names, science sites (and their sample names), geologic units, a rover sol
+    ('sol 509') or a coordinate pair ('77.40, 18.45'). Accent- and typo-tolerant."""
+    r = _region_or_404(region_id)
+    if not q.strip():
+        raise HTTPException(422, detail={"code": "bad_request", "message": "Empty search"})
+    return search.search(r, q, limit=max(1, min(limit, 50)))
+
+
+@app.get(f"{API}/point-info")
+def point_info_endpoint(region_id: str, lon: float, lat: float, from_lon: float | None = None,
+                        from_lat: float | None = None, max_slope_deg: float | None = None,
+                        roughness_max_m: float | None = None, eva_hours: float | None = None):
+    """'What's here?': terrain, walkability (with reasons), geology, nearest science site, rover stop and
+    hazard zone, and optionally the walk there and back from a start point."""
+    validate_lonlat(lon, lat)
+    r = _region_or_404(region_id)
+    if not r.grid.contains(lon, lat):
+        raise HTTPException(422, detail={"code": "outside_region", "message": "Point outside the region"})
+    eva = EvaParams.defaults().merged({"max_slope_deg": max_slope_deg, "roughness_max_m": roughness_max_m,
+                                       "eva_hours": eva_hours})
+    frm = None
+    if from_lon is not None and from_lat is not None:
+        validate_lonlat(from_lon, from_lat)
+        frm = (from_lon, from_lat)
+    return point_info(r, lon, lat, eva, frm)
 
 # ------------------------------------------------------------------ pins
 
