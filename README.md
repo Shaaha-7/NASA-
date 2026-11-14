@@ -11,7 +11,7 @@ No place on Earth is identical to the Moon or Mars. This project uses open NASA 
 3. **Proof:** a blind test showing the method finds well-known analog sites (Atacama, Haughton Crater, Death Valley, and others) on its own, plus all data sources.
 
 ## Targets
-- **Moon:** Mons Mouton, a NASA Artemis III candidate landing region near the south pole
+- **Moon:** Mons Mouton, a NASA Artemis candidate landing region near the south pole (the first crewed landing is now planned for Artemis IV, early 2028)
 - **Mars:** Arcadia Planitia (shallow subsurface ice)
 - **Mars:** Jezero Crater (ancient lake delta, Perseverance rover site)
 
@@ -22,6 +22,7 @@ Gravity (Moon 0.17 g, Mars 0.38 g), the lunar vacuum, the thin Martian atmospher
 | Path | Contents |
 |---|---|
 | `IDEA.md` | **Start here:** the detailed project idea and questions for the team |
+| `TARGETS.md` | The 3 Moon and Mars targets: official coordinates, conditions, and sources |
 | `CLAUDE.md` | Project charter, standards, and quality gates |
 | `DATA_SOURCES.md` | Download links for all datasets |
 | `TEAM_TASKS.md` | Who does what, and when |
