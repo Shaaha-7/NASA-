@@ -129,8 +129,14 @@ All EVA numbers are **team assumptions** in `config/eva_defaults.json`. Change t
 | GET | `/science-sites?region_id=` | curated sites + Perseverance waypoints + traverse |
 | GET | `/hazards?region_id=` | rule-based hazard zones (optional custom limits) |
 | GET | `/validation?region_id=` | planner vs Perseverance's real drives (rover benchmark) |
+| GET | `/point-info?region_id=&lon=&lat=[&from_lon=&from_lat=]` | "What's here?": terrain, 50 m neighbourhood, geology, walkability with reasons, nearest science site / rover stop / hazard, optional walk there and back |
+| GET | `/search?region_id=&q=` | IAU place names, science sites and sample names, geologic units, `sol 509`, `77.40, 18.45`; accent- and typo-tolerant |
+| POST | `/reachability` | walking range from a habitat: GeoJSON bands at 25/50/75/100% of usable EVA time (out and back) + science stops in range |
+| GET | `/ground-view?region_id=&lon=&lat=` or `&site_id=` | real Perseverance images (Mastcam-Z, Navcam, Hazcam, WATSON) from the nearest rover stop |
+| GET | `/ground-view/image/{image_id}?size=small\|medium` | locally cached copy of a rover image (works offline) |
+| POST | `/ground-view/prefetch?region_id=` | while online: cache image lists and copies for every science site |
 | GET | `/eva/defaults` | EVA parameters and their descriptions |
-| POST | `/routes/calculate` | one route (start, stops[], destination, profile, eva overrides) |
+| POST | `/routes/calculate` | one route (start, stops[], destination, profile, eva overrides); includes turn-by-turn `directions` |
 | POST | `/routes/compare` | several profiles side by side |
 | POST/GET | `/missions`, `/missions/{id}`, `/missions/{id}/export?format=geojson\|csv\|json` | save and export |
 | GET | `/space-weather?eva_hours=` | DONKI advisory + RAD reference |

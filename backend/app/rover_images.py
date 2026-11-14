@@ -34,6 +34,25 @@ GROUND_CAMERAS = {  # instrument -> (priority, plain label)
     "FRONT_HAZCAM_RIGHT_A": (7, "Front Hazcam (right)"),
 }
 MIN_SIDE_PX = 500
+THUMBS_DIR = CACHE_DIR / "images"
+IMAGES_PER_SITE = 6
+_ID_OK = re.compile(r"^[A-Za-z0-9_]+$")
+
+
+def local_image(image_id: str, size: str):
+    """Path of a cached copy (size 'small' 320 px or 'medium' 800 px), or None."""
+    if size not in ("small", "medium") or not _ID_OK.match(image_id or ""):
+        return None
+    f = THUMBS_DIR / f"{image_id}_{size}.jpg"
+    return f if f.exists() else None
+
+
+def _with_local(x: dict) -> dict:
+    y = dict(x)
+    for size in ("small", "medium"):
+        if local_image(x.get("image_id", ""), size):
+            y[f"local_{size}_url"] = f"/api/v1/ground-view/image/{x['image_id']}?size={size}"
+    return y
 
 
 def _dims(ext: dict) -> tuple[int, int]:
@@ -128,7 +147,7 @@ def ground_view(region, lon: float, lat: float, max_images: int = 8, allow_fetch
                        "distance_m": round(dist, 1)},
         "sols_searched": sols,
         "fetch_status": status,
-        "images": picked[:max_images],
+        "images": [_with_local(x) for x in picked[:max_images]],
         "images_total": len(images),
         "source": "NASA Mars 2020 Perseverance raw images (public feed)",
         "source_url": GALLERY,
@@ -138,12 +157,30 @@ def ground_view(region, lon: float, lat: float, max_images: int = 8, allow_fetch
     }
 
 
-def prefetch_for_sites(region, sites: list[dict]) -> dict:
-    """Cache the image lists for every science site's nearest rover stop (call while online)."""
+def prefetch_for_sites(region, sites: list[dict], per_site: int = IMAGES_PER_SITE) -> dict:
+    """While online: cache each science site's image list AND local copies (320 px and 800 px) of its first
+    `per_site` images, so the ground view still shows pictures with Wi-Fi off."""
+    THUMBS_DIR.mkdir(parents=True, exist_ok=True)
     report = {}
     for f in sites:
         lon, lat = f["geometry"]["coordinates"][:2]
-        gv = ground_view(region, lon, lat, max_images=1)
+        gv = ground_view(region, lon, lat, max_images=per_site)
+        saved = 0
+        for x in gv.get("images", []):
+            for size in ("small", "medium"):
+                url = x.get(f"{size}_url")
+                dest = THUMBS_DIR / f"{x['image_id']}_{size}.jpg"
+                if not url or dest.exists() or not _ID_OK.match(x["image_id"]):
+                    saved += dest.exists()
+                    continue
+                try:
+                    r = netutil.get(url, timeout=40)
+                    if r.headers.get("content-type", "").startswith("image/"):
+                        dest.write_bytes(r.content)
+                        saved += 1
+                except Exception:
+                    pass
         report[f.get("properties", {}).get("id", "?")] = {"sols": gv.get("sols_searched"),
-                                                          "images": gv.get("images_total", 0)}
+                                                          "images_listed": gv.get("images_total", 0),
+                                                          "files_cached": saved}
     return report

@@ -273,3 +273,11 @@ def test_search_names_sols_and_coordinates(synthetic):
     d = search.search(synthetic, "120.03, 10.03")
     assert d["results"][0]["kind"] == "coordinates" and d["results"][0]["inside_region"] is True
     assert search.search(synthetic, "zzqqxx")["results"] == []
+
+
+def test_ground_view_image_rejects_bad_ids():
+    """Cached-image lookup only accepts plain NASA image ids and known sizes (no path traversal)."""
+    from app import rover_images
+    for bad in ("../secret", "..\\x", "a/b", "", "ok id"):
+        assert rover_images.local_image(bad, "small") is None
+    assert rover_images.local_image("ZL0_0001", "huge") is None

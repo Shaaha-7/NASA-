@@ -210,6 +210,26 @@ def validation(region_id: str):
     return json.loads(f.read_text(encoding="utf-8"))
 
 
+@app.get(f"{API}/ground-view/image/{{image_id}}")
+def ground_view_image(image_id: str, size: str = "small"):
+    """A locally cached copy of a Perseverance raw image (cached by the offline prefetch)."""
+    f = rover_images.local_image(image_id, size)
+    if f is None:
+        raise HTTPException(404, detail={"code": "not_cached",
+                                         "message": "Image not cached locally; use its NASA URL while online."})
+    return FileResponse(f, media_type="image/jpeg", headers={"Cache-Control": "public, max-age=604800"})
+
+
+@app.post(f"{API}/ground-view/prefetch")
+def ground_view_prefetch(region_id: str, per_site: int = 6):
+    """While online: cache image lists and local image copies for every curated science site."""
+    r = _region_or_404(region_id)
+    if not netutil.is_online():
+        raise HTTPException(503, detail={"code": "offline", "message": "Prefetch needs a network connection."})
+    sites = r.read_geojson("science_sites.geojson").get("features", [])
+    return rover_images.prefetch_for_sites(r, sites, per_site=max(1, min(per_site, 12)))
+
+
 @app.get(f"{API}/ground-view")
 def ground_view(region_id: str, lon: float | None = None, lat: float | None = None, site_id: str | None = None,
                 max_images: int = 8):
