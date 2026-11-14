@@ -1,0 +1,17 @@
+# Text files: normalize line endings
+* text=auto
+
+# Binary files: never touch line endings
+*.pdf binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.tif binary
+*.tiff binary
+*.mp4 binary
+*.pptx binary
+*.docx binary
+*.xlsx binary
+*.npy binary
+*.parquet binary
