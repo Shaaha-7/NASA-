@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MarsPath - Point of view</title>
+<style>
+:root{--ink:#1c1410;--mut:#5b4a40;--glass:rgba(255,244,236,.34);--line:rgba(255,255,255,.55);--dark:#2a1710}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{font:13px/1.35 "Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif;color:var(--ink);background:#14100e;display:grid;place-items:center;padding:14px}
+.frame{position:relative;width:min(100%,calc((100vh - 28px)*1.45));aspect-ratio:1.45/1;min-height:520px;border-radius:6px;overflow:hidden;background:#d9b9a2}
+#bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.shade{position:absolute;inset:0;background:linear-gradient(rgba(250,232,220,.86) 0%,rgba(250,232,220,.35) 22%,rgba(250,232,220,0) 40%)}
+.nav{position:absolute;left:0;right:0;top:0;display:flex;align-items:center;padding:14px 20px;z-index:3}
+.logo{font-weight:700;letter-spacing:.5px;display:flex;align-items:center;gap:8px;font-size:14px}
+.logo i{width:11px;height:11px;background:var(--ink);display:block;box-shadow:6px 6px 0 -2px var(--ink)}
+.nav nav{flex:1;display:flex;justify-content:center;gap:46px}
+.nav a{color:var(--ink);text-decoration:none;font-size:12.5px}.nav a:hover{text-decoration:underline}
+.upd{font-size:11.5px;color:var(--mut)}
+.card{position:absolute;z-index:3;background:var(--glass);border:1px solid var(--line);border-radius:6px;backdrop-filter:blur(14px) saturate(1.2);-webkit-backdrop-filter:blur(14px) saturate(1.2)}
+.stats{top:62px;width:23%;display:flex;padding:12px 14px}
+.stats>div{flex:1}.stats>div+div{border-left:1px solid rgba(60,40,30,.25);padding-left:14px}
+.stats b{font-size:27px;font-weight:400;letter-spacing:-.5px}.stats sup{font-size:10px;font-weight:600;margin-left:3px}
+.stats small{display:block;color:var(--mut);font-size:11px;margin-top:2px}
+.sl{left:2.2%}.sr{right:2.2%}
+.side{top:calc(62px + 86px);bottom:4%;width:23%;padding:14px;display:flex;flex-direction:column;color:#fff;background:rgba(120,70,50,.36);overflow:hidden}
+.side h3{margin:0;font-size:16px;font-weight:400;display:flex;justify-content:space-between;align-items:center}
+.side .sub{font-size:11px;opacity:.85;margin-top:2px}
+.sun{position:relative;flex:1;min-height:120px;display:grid;place-items:center}
+.sun .ring{position:absolute;width:62%;aspect-ratio:1;border:1px dashed rgba(255,255,255,.55);border-radius:50%}
+.sun .core{width:34%;aspect-ratio:1;border-radius:50%;background:radial-gradient(circle,#ffb347 0%,#ff5a1f 55%,rgba(255,90,31,0) 72%);display:grid;place-items:center;text-align:center;font-size:17px;line-height:1.05}
+.sun .core small{display:block;font-size:10px}
+.pill{position:absolute;background:#fff;color:var(--ink);border-radius:20px;padding:2px 9px;font-size:10.5px;white-space:nowrap}
+.hr{border-top:1px solid rgba(255,255,255,.3);margin:8px 0}
+#wire{width:100%;flex:1;min-height:90px}
+.seg{display:flex;background:rgba(255,255,255,.35);border-radius:20px;padding:2px;margin:10px 0 6px}
+.seg button{flex:1;border:0;background:none;border-radius:20px;padding:4px 0;font:inherit;font-size:11.5px;cursor:pointer;color:var(--ink)}
+.seg button.on{background:var(--dark);color:#fff}
+#hist{width:100%;height:70px}
+.mm{display:flex;justify-content:space-between;font-size:10.5px}.mm b{display:block;font-weight:500;font-size:12px}
+#comp{font-size:12px;line-height:1.4;min-height:104px}
+#gauge{width:100%;flex:1;min-height:80px}
+.leg{display:flex;justify-content:center;gap:14px;font-size:11px;margin:2px 0 8px}.leg i{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:5px}
+.btn{border:0;background:rgba(255,255,255,.28);color:#fff;padding:9px;border-radius:4px;font:inherit;font-weight:600;cursor:pointer}.btn:hover{background:rgba(255,255,255,.4)}
+.center{position:absolute;left:27%;right:27%;top:17%;text-align:center;z-index:2}
+.tagp{display:inline-block;background:#fff;border-radius:20px;padding:3px 12px;font-size:11px}
+.title{font-size:clamp(22px,3.4vw,40px);font-weight:400;letter-spacing:-.5px;line-height:1.05;margin:16px 0 0;text-transform:uppercase}
+.reticle{position:absolute;left:50%;top:60%;width:20%;transform:translate(-50%,-50%);z-index:2;pointer-events:none}
+.reticle:before{content:"";display:block;border-top:1px solid #fff;box-shadow:0 0 12px 1px rgba(255,255,255,.7)}
+.reticle:after{content:"";position:absolute;left:50%;top:-16px;border:6px solid transparent;border-top-color:#fff;transform:translateX(-50%)}
+.mode{position:absolute;left:50%;bottom:5%;transform:translateX(-50%);z-index:3;display:flex;background:rgba(255,255,255,.4);border-radius:20px;padding:2px}
+.mode a{padding:3px 14px;border-radius:20px;font-size:11.5px;color:var(--ink);text-decoration:none}.mode a.on{background:#fff}
+.arrow{position:absolute;top:60%;z-index:3;width:30px;height:30px;border-radius:50%;border:1px solid var(--line);background:rgba(255,255,255,.35);cursor:pointer;font-size:17px;line-height:1}
+#prev{left:27%}#next{right:27%}
+.credit{position:absolute;left:27%;right:27%;bottom:1.2%;text-align:center;font-size:10.5px;color:#fff;text-shadow:0 1px 3px #000;z-index:3}
+.none{position:absolute;inset:0;display:grid;place-items:center;color:var(--mut);font-size:15px}
+.hidden{display:none!important}
+@media(max-width:900px){.frame{aspect-ratio:auto;min-height:1100px}.stats,.side{position:relative;left:auto;right:auto;top:auto;bottom:auto;width:auto;margin:10px}.sl{margin-top:210px}.center{left:5%;right:5%;top:60px}.reticle,.arrow{display:none}}
+</style>
+</head>
+<body>
+<div class="frame">
+  <img id="bg" alt="">
+  <div id="noimg" class="none hidden">No rover image cached for this point</div>
+  <div class="shade"></div>
+  <div class="nav">
+    <div class="logo"><i></i>MARSPATH</div>
+    <nav><a href="dashboard.html">Overview</a><a href="index.html">Science Map</a><a href="dashboard.html">EVA Settings</a></nav>
+    <div class="upd" id="upd">-</div>
+  </div>
+
+  <div class="card stats sl"><div><b id="sSlope">-</b><sup>DEG</sup><small>Slope here</small></div><div><b id="sElev">-</b><sup>M</sup><small>Elevation</small></div></div>
+  <div class="card stats sr"><div><b id="sRad">-</b><sup id="sRadU"></sup><small>Radiation (Gale reference)</small></div><div><b id="sWalk">-</b><sup>%</sup><small>Walkable ground</small></div></div>
+
+  <div class="card side sl">
+    <h3>Solar activity <span id="warn" title="">&#9651;</span></h3>
+    <div class="sub" id="sunSub">-</div>
+    <div class="sun"><div class="ring"></div><div class="core"><span><span id="sunN">-</span><small id="sunL">SEP events</small></span></div>
+      <span class="pill" id="sunLvl" style="right:8%;top:14%">-</span><span class="pill" id="sunDose" style="left:2%;bottom:18%">-</span></div>
+    <div class="hr"></div>
+    <h3>3D Projection <span>&middot;&middot;&middot;</span></h3>
+    <svg id="wire" viewBox="0 0 240 120" preserveAspectRatio="xMidYMid meet"></svg>
+  </div>
+
+  <div class="center"><span class="tagp" id="tagp">Expedition</span><h1 class="title" id="title">-</h1></div>
+  <div class="reticle"></div>
+  <button class="arrow" id="prev" aria-label="Previous image">&lsaquo;</button>
+  <button class="arrow" id="next" aria-label="Next image">&rsaquo;</button>
+  <div class="mode"><a class="on" href="#">3D</a><a href="dashboard.html">2D</a></div>
+  <div class="credit" id="credit"></div>
+
+  <div class="card side sr">
+    <h3>View <span>&middot;&middot;&middot;</span></h3>
+    <div class="seg"><button id="bStruct" class="on">Structure</button><button id="bComp">Composition</button></div>
+    <div id="struct"><svg id="hist" viewBox="0 0 220 70" preserveAspectRatio="none"></svg>
+      <div class="mm"><span>Min<b id="mMin">-</b></span><span>Current<b id="mCur">-</b></span><span>Max<b id="mMax">-</b></span></div></div>
+    <div id="comp" class="hidden"></div>
+    <div class="hr"></div>
+    <h3>Walkable ratio</h3>
+    <svg id="gauge" viewBox="0 0 200 110" preserveAspectRatio="xMidYMid meet"></svg>
+    <div class="leg"><span><i style="background:#fff"></i>Within EVA limits</span><span><i style="background:#f0a04b"></i>Over limits</span></div>
+    <button class="btn" id="report">Generate Report</button>
+  </div>
+</div>
+<script>
+const API = "/api/v1", NA = "n/a", $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const fmt = (v, d = 1) => (v === null || v === undefined || Number.isNaN(+v) ? NA : (+v).toFixed(d));
+const get = async (p) => { const r = await fetch(API + p); const j = await r.json().catch(() => ({})); if (!r.ok) throw new Error(j?.detail?.message || "Request failed"); return j; };
+const Q = new URLSearchParams(location.search);
+const D = { imgs: [], i: +(Q.get("i") || 0), report: {} };
+
+function showImg() {
+  const x = D.imgs[D.i];
+  $("bg").classList.toggle("hidden", !x); $("noimg").classList.toggle("hidden", !!x);
+  if (!x) { $("credit").textContent = ""; return; }
+  $("bg").src = x.u;
+  $("credit").textContent = `${x.cam} · sol ${x.sol} · ${x.credit} · raw image ${D.i + 1}/${D.imgs.length}`;
+}
+$("prev").onclick = () => { if (D.imgs.length) { D.i = (D.i - 1 + D.imgs.length) % D.imgs.length; showImg(); } };
+$("next").onclick = () => { if (D.imgs.length) { D.i = (D.i + 1) % D.imgs.length; showImg(); } };
+
+function wire(grid) {
+  const n = grid.length, flat = grid.flat().filter((v) => v !== null); if (!flat.length) { $("wire").innerHTML = `<text x="120" y="60" fill="#fff" text-anchor="middle" font-size="11">Terrain ${NA}</text>`; return; }
+  const lo = Math.min(...flat), hi = Math.max(...flat), k = 46 / Math.max(hi - lo, 1), dx = 150 / (n - 1), dy = 46 / (n - 1), sk = 60 / (n - 1);
+  const P = (i, j) => { const z = grid[i][j]; return z === null ? null : [20 + j * dx + (n - 1 - i) * sk * 0.5 + 0, 62 + i * dy - (z - lo) * k]; };
+  let s = "";
+  for (let i = 0; i < n; i++) { let d = ""; for (let j = 0; j < n; j++) { const p = P(i, j); if (p) d += (d ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1); } s += `<path d="${d}" fill="none" stroke="rgba(255,255,255,.75)" stroke-width=".5"/>`; }
+  for (let j = 0; j < n; j += 2) { let d = ""; for (let i = 0; i < n; i++) { const p = P(i, j); if (p) d += (d ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1); } s += `<path d="${d}" fill="none" stroke="rgba(255,255,255,.4)" stroke-width=".4"/>`; }
+  const lab = (t, x, y) => `<rect x="${x}" y="${y}" width="${t.length * 5.2 + 10}" height="13" rx="6.5" fill="#fff"/><text x="${x + 5}" y="${y + 9.5}" font-size="8.5" fill="#1c1410">${esc(t)}</text>`;
+  $("wire").innerHTML = s + lab(`High ${Math.round(hi)} m`, 150, 4) + lab(`Low ${Math.round(lo)} m`, 6, 14);
+}
+function hist(h, cur) {
+  const c = h.counts || [], e = h.bin_edges_deg || [], mx = Math.max(...c, 1), w = 220 / c.length;
+  $("hist").innerHTML = c.map((v, i) => { const on = cur !== null && cur >= e[i] && cur < e[i + 1]; const hh = (v / mx) * 62;
+    return `<rect x="${(i * w + 1).toFixed(1)}" y="${(68 - hh).toFixed(1)}" width="${(w - 2).toFixed(1)}" height="${hh.toFixed(1)}" fill="${on ? "#fff" : "rgba(255,255,255,.5)"}"><title>${e[i]}-${e[i + 1]} deg: ${v} cells</title></rect>`; }).join("");
+}
+function gauge(fr) {
+  const arc = (a0, a1, col, w) => { const p = (a) => [100 + 78 * Math.cos(Math.PI * (1 - a)), 98 - 78 * Math.sin(Math.PI * a)]; const [x0, y0] = p(a0), [x1, y1] = p(a1); return `<path d="M${x0.toFixed(1)} ${y0.toFixed(1)} A78 78 0 0 1 ${x1.toFixed(1)} ${y1.toFixed(1)}" fill="none" stroke="${col}" stroke-width="${w}" stroke-linecap="round"/>`; };
+  if (fr === null || fr === undefined) { $("gauge").innerHTML = `<text x="100" y="70" text-anchor="middle" fill="#fff" font-size="12">${NA}</text>`; return; }
+  $("gauge").innerHTML = arc(0, 1, "rgba(240,160,75,.9)", 9) + arc(0, Math.max(0.01, fr), "#fff", 9) + `<rect x="78" y="56" width="44" height="20" rx="10" fill="#fff"/><text x="100" y="70" text-anchor="middle" font-size="12" fill="#1c1410">${Math.round(fr * 100)}%</text>`;
+}
+$("bStruct").onclick = () => { $("bStruct").classList.add("on"); $("bComp").classList.remove("on"); $("struct").classList.remove("hidden"); $("comp").classList.add("hidden"); };
+$("bComp").onclick = () => { $("bComp").classList.add("on"); $("bStruct").classList.remove("on"); $("comp").classList.remove("hidden"); $("struct").classList.add("hidden"); };
+$("report").onclick = () => { const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([JSON.stringify(D.report, null, 2)], { type: "application/json" })); a.download = "marspath_point_report.json"; a.click(); };
+
+(async function init() {
+  try {
+    let region = Q.get("region_id");
+    if (!region) { const regs = await get("/regions"); const l = regs.regions || regs; region = (l.find((r) => !r.is_test_fixture) || l[0]).region_id; }
+    const rq = encodeURIComponent(region);
+    let lon = parseFloat(Q.get("lon")), lat = parseFloat(Q.get("lat")), site = null;
+    const ss = await get(`/science-sites?region_id=${rq}`);
+    const sites = (ss.features || []).filter((f) => f.properties.kind === "science_site");
+    const sid = Q.get("site_id");
+    if (sid) site = sites.find((f) => f.properties.id === sid);
+    if (!site && !Number.isFinite(lon)) site = sites.find((f) => f.properties.goal_id !== "context") || sites[0];
+    if (site) [lon, lat] = site.geometry.coordinates;
+    const pq = `region_id=${rq}&lon=${lon}&lat=${lat}`;
+    const [gv, pi, patch, sw] = await Promise.all([
+      get(`/ground-view?${pq}&max_images=12`).catch(() => ({})), get(`/point-info?${pq}`).catch(() => ({})),
+      get(`/terrain/patch?${pq}&size_m=300&n=24`).catch(() => ({})), get("/space-weather?eva_hours=4").catch(() => ({}))]);
+    D.report = { generated_utc: new Date().toISOString(), region_id: region, point: { lon, lat }, science_site: site ? site.properties : null, point_info: pi, terrain_patch: patch, space_weather: { advisory: sw.advisory, counts: sw.counts, fetched_at: sw.fetched_at, rad_reference: sw.rad_reference }, rover_stop: gv.rover_stop, note: "Model-derived values under team assumptions; not a certified safety assessment." };
+
+    D.imgs = (gv.images || []).map((x) => ({ u: x.local_medium_url || (gv.offline ? null : x.large_url || x.medium_url), sol: x.sol, cam: x.camera_label || x.camera, credit: x.credit || "NASA/JPL-Caltech" })).filter((x) => x.u);
+    if (D.i >= D.imgs.length) D.i = 0; showImg();
+
+    const name = site ? site.properties.name : (pi.nearest_science_site ? "Near " + pi.nearest_science_site.name : "Selected point");
+    const parts = String(name).split(/,\s*|\s*\(/);
+    $("title").innerHTML = esc(parts[0]) + (parts[1] ? "/<br>" + esc(parts[1].replace(/\)$/, "")) : "");
+    $("tagp").textContent = site ? (site.properties.goal_id === "context" ? "Context stop" : "Science goal " + site.properties.goal_id) : "Expedition";
+    const t = pi.terrain || {};
+    $("sSlope").textContent = fmt(t.slope_deg, 1); $("sElev").textContent = t.elevation_m === null || t.elevation_m === undefined ? NA : Math.round(t.elevation_m).toLocaleString("en-US");
+    const rr = sw.rad_reference || {}; $("sRad").textContent = rr.value ?? NA; $("sRadU").textContent = rr.unit ? rr.unit.toUpperCase() : "";
+    $("sWalk").textContent = patch.walkable_fraction === null || patch.walkable_fraction === undefined ? NA : Math.round(patch.walkable_fraction * 100);
+    $("upd").textContent = sw.fetched_at ? "UPD: " + sw.fetched_at.replace("T", " ").slice(0, 16) + " UTC" : "Space weather " + NA;
+
+    const c = sw.counts || {}, lvl = sw.advisory?.level || "unknown";
+    $("sunSub").textContent = `CME - ${c.CME ?? "unknown"} in 30 days (DONKI)`;
+    $("sunN").textContent = c.SEP ?? "?"; $("sunLvl").textContent = lvl === "nominal" ? "Nominal" : lvl === "caution" ? "Caution" : "Unknown";
+    $("sunDose").textContent = sw.eva_reference_dose_mSv ? `${sw.eva_reference_dose_mSv.value} mSv / ${sw.eva_reference_dose_mSv.eva_hours} h ref` : NA;
+    $("warn").title = sw.advisory?.text || ""; $("warn").style.opacity = lvl === "nominal" ? ".5" : "1";
+
+    if (patch.elevation_grid_m) wire(patch.elevation_grid_m);
+    const sd = patch.slope_deg || {};
+    if (patch.slope_histogram) hist(patch.slope_histogram, sd.current ?? null);
+    $("mMin").textContent = fmt(sd.min, 1) + "°"; $("mCur").textContent = fmt(sd.current, 1) + "°"; $("mMax").textContent = fmt(sd.max, 1) + "°";
+    gauge(patch.walkable_fraction);
+    const g = pi.geology;
+    $("comp").innerHTML = `<b>${esc(g?.unit || "Geologic unit " + NA)}</b><br>${g ? `Walking-time multiplier ×${g.walking_time_multiplier}${g.reason ? " (" + esc(g.reason) + ")" : ""}<br>` : ""}
+      ${site ? esc(site.properties.observation || "") + `<br><a style="color:#fff" href="${esc(site.properties.source_url || "#")}" target="_blank" rel="noopener">${esc(site.properties.source || "Source")}</a>` : "No mineral measurements are loaded for this point."}`;
+  } catch (e) { $("title").textContent = e.message; }
+})();
+</script>
+</body>
+</html>

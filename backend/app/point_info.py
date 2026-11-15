@@ -102,3 +102,47 @@ def point_info(region: Region, lon: float, lat: float, eva: EvaParams,
         except RouteError as e:
             out["walk_from_start"] = {"from": list(from_lonlat), "error": e.code, "message": str(e)}
     return out
+
+
+def terrain_patch(region: Region, lon: float, lat: float, eva: EvaParams, size_m: float = 300.0, n: int = 24) -> dict:
+    """Square patch of real DEM values centred on a point, for a 3D wireframe and local statistics:
+    an n x n elevation grid (row 0 = north), slope histogram, min/current/max slope and the share of
+    cells walkable under the EVA limits. Cells outside the region or without data are null."""
+    g = region.grid
+    half = size_m / 2.0
+    dlat = np.degrees(half / 3_396_190.0)
+    dlon = dlat / max(np.cos(np.radians(lat)), 1e-6)
+    lats = np.linspace(lat + dlat, lat - dlat, n)
+    lons = np.linspace(lon - dlon, lon + dlon, n)
+    elev = np.full((n, n), np.nan)
+    for i, la in enumerate(lats):
+        for j, lo in enumerate(lons):
+            if g.contains(lo, la):
+                r, c = g.cell_of(lo, la)
+                elev[i, j] = region.elev[r, c]
+    r0, c0 = g.cell_of(lon - dlon, lat + dlat)
+    r1, c1 = g.cell_of(lon + dlon, lat - dlat)
+    win = (slice(min(r0, r1), max(r0, r1) + 1), slice(min(c0, c1), max(c0, c1) + 1))
+    sl, rg = region.slope[win], region.rough[win]
+    ok = np.isfinite(sl)
+    vals = sl[ok]
+    edges = [0, 2, 4, 6, 8, 10, 15, 20, 25, 35, 90]
+    hist = np.histogram(vals, bins=edges)[0].tolist() if vals.size else []
+    walk = ok & (sl <= eva.max_slope_deg) & (np.nan_to_num(rg, nan=0.0) <= eva.roughness_max_m)
+    here = region.sample(lon, lat)
+    fin = elev[np.isfinite(elev)]
+    return {
+        "region_id": region.region_id, "is_test_fixture": region.is_test_fixture, "lon": lon, "lat": lat,
+        "size_m": size_m, "n": n,
+        "elevation_grid_m": [[None if not np.isfinite(v) else round(float(v), 2) for v in row] for row in elev],
+        "elevation_min_m": round(float(fin.min()), 1) if fin.size else None,
+        "elevation_max_m": round(float(fin.max()), 1) if fin.size else None,
+        "slope_deg": {"min": round(float(vals.min()), 1) if vals.size else None,
+                      "current": here.get("slope_deg"),
+                      "max": round(float(vals.max()), 1) if vals.size else None,
+                      "median": round(float(np.median(vals)), 1) if vals.size else None},
+        "slope_histogram": {"bin_edges_deg": edges, "counts": hist},
+        "walkable_fraction": round(float(walk.sum()) / int(ok.sum()), 3) if ok.any() else None,
+        "eva_limits": {"max_slope_deg": eva.max_slope_deg, "roughness_max_m": eva.roughness_max_m},
+        "data_basis": f"processed numerical DEM grid ({g.mean_res_m:.0f} m cells); model-derived",
+    }

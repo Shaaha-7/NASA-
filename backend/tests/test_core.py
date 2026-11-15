@@ -351,3 +351,13 @@ def test_citation_styles_are_normalised(monkeypatch):
     g = assistant.grounding_check("SHERLOC recorded organic detections at Wildcat Ridge. [1] "
                                   "Wildcat Ridge is a sulfate-bearing mudstone. [1, 2]", hits)
     assert g["supported"] == 2 and g["total"] == 2
+
+
+def test_terrain_patch_is_real_and_bounded(synthetic):
+    from app.point_info import terrain_patch
+    lon, lat = synthetic.grid.center_of(synthetic.grid.height // 2, synthetic.grid.width // 2)
+    p = terrain_patch(synthetic, lon, lat, EvaParams.defaults(), size_m=200, n=12)
+    assert len(p["elevation_grid_m"]) == 12 and len(p["elevation_grid_m"][0]) == 12
+    assert 0.0 <= p["walkable_fraction"] <= 1.0
+    assert sum(p["slope_histogram"]["counts"]) > 0
+    assert p["slope_deg"]["min"] <= p["slope_deg"]["max"]

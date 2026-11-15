@@ -19,6 +19,10 @@ Try this:
 - Optionally click a pin and choose **Add as stop**.
 - Press **Calculate route** or **Compare profiles**.
 
+Other pages:
+- **Mission dashboard:** http://localhost:8000/app/dashboard.html (map, layers, multi-stop route, science goals, EVA settings, space weather, rover photos, assistant)
+- **Point of view:** http://localhost:8000/app/pov.html (real Perseverance image at a stop with terrain, walkability and solar activity cards); opens from the dashboard's photo panel or a map click
+
 API docs (all endpoints, try-it-out): http://localhost:8000/docs
 
 Prefer the terminal? In VS Code: `python -m venv .venv`, then `.venv\Scripts\activate`, then `pip install -r requirements.txt`, then `python -m uvicorn app.main:app --app-dir backend --port 8000`.

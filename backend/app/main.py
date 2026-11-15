@@ -22,7 +22,7 @@ from .eva import EvaParams
 from .geo import COORDINATE_CONVENTION, validate_lonlat
 from .region_store import available_region_ids, get_region
 from .routing import HAVE_NUMBA, PROFILES, RouteError, compute_route, optimise_stop_order
-from .point_info import point_info
+from .point_info import point_info, terrain_patch
 from .reachability import compute_reachability
 from .schemas import AskRequest, CompareRequest, MissionRequest, ReachabilityRequest, RouteRequest
 
@@ -147,6 +147,16 @@ def search_endpoint(region_id: str, q: str, limit: int = 10):
     if not q.strip():
         raise HTTPException(422, detail={"code": "bad_request", "message": "Empty search"})
     return search.search(r, q, limit=max(1, min(limit, 50)))
+
+
+@app.get(f"{API}/terrain/patch")
+def terrain_patch_endpoint(region_id: str, lon: float, lat: float, size_m: float = 300.0, n: int = 24):
+    """Real DEM patch around a point: elevation grid for a 3D wireframe, slope histogram, walkable share."""
+    validate_lonlat(lon, lat)
+    r = _region_or_404(region_id)
+    if not r.grid.contains(lon, lat):
+        raise HTTPException(422, detail={"code": "outside_region", "message": "Point outside the region"})
+    return terrain_patch(r, lon, lat, EvaParams.defaults(), size_m=max(50.0, min(size_m, 2000.0)), n=max(8, min(n, 48)))
 
 
 @app.get(f"{API}/point-info")

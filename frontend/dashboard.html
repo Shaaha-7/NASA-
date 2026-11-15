@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MarsPath - Mission dashboard</title>
+<link rel="stylesheet" href="vendor/leaflet.css">
+<link rel="stylesheet" href="dashboard.css">
+</head>
+<body>
+<header class="top">
+  <div class="brand">
+    <div class="planet" aria-hidden="true"></div>
+    <div><div class="name">MarsPath</div><div class="tag">Marswalk Planner for Human Exploration</div></div>
+  </div>
+  <nav class="tabs" id="tabs">
+    <button class="tab active" data-tab="map"><span data-ico="map"></span>Map &amp; Plan</button>
+    <button class="tab" data-tab="goals"><span data-ico="check"></span>Science Goals</button>
+    <button class="tab" data-tab="safety"><span data-ico="shield"></span>Safety &amp; EVA</button>
+    <button class="tab" data-tab="assistant"><span data-ico="spark"></span>Assistant</button>
+    <button class="tab" data-tab="offline"><span data-ico="download"></span>Offline</button>
+  </nav>
+  <div class="event"><div class="ev1">NASA Space Apps 2026</div><div class="ev2">Interplanetary Survival Guide:<br>Martian Map</div></div>
+</header>
+
+<main class="grid">
+  <aside class="col left">
+    <section class="panel region">
+      <div class="thumb" id="regionThumb"></div>
+      <div><div class="rtitle">Region: <b id="regionName">-</b></div><div class="rsub" id="regionSub">-</div></div>
+    </section>
+    <section class="panel">
+      <h3><span data-ico="layers"></span>Map Layers (NASA Data)</h3>
+      <div id="layerList" class="layers"></div>
+      <div class="oprow"><span>Layer Opacity</span><input id="opacity" type="range" min="10" max="100" step="5" value="70"><b id="opv">70%</b></div>
+    </section>
+    <section class="panel">
+      <h3>Legend - Geologic Units</h3>
+      <div id="legend" class="legend"></div>
+    </section>
+  </aside>
+
+  <section class="col mid">
+    <div class="mapwrap panel" id="mapwrap">
+      <div id="map"></div>
+      <div class="north" aria-hidden="true">N<i></i></div>
+      <div class="tools">
+        <button id="tLayers" title="Toggle geologic units"><span data-ico="layers"></span></button>
+        <button id="tFit" title="Fit route"><span data-ico="target"></span></button>
+        <a id="t3d" href="index.html" title="3D globe">3D</a>
+        <button id="tSlope" title="Toggle slope layer"><span data-ico="mountain"></span></button>
+        <button id="tFull" title="Expand map"><span data-ico="expand"></span></button>
+      </div>
+      <div class="zoom"><button id="zin">+</button><button id="zout">&minus;</button></div>
+      <div class="profiles" id="profiles">
+        <button data-p="gentlest" class="active"><span data-ico="leaf"></span>Gentlest (Safer)</button>
+        <button data-p="fastest"><span data-ico="gauge"></span>Fastest</button>
+        <button data-p="shortest"><span data-ico="path"></span>Shortest</button>
+        <button data-p="compare"><span data-ico="scale"></span>Compare Routes</button>
+      </div>
+      <div id="mapmsg" class="mapmsg hidden"></div>
+      <div id="drawer" class="drawer hidden"></div>
+    </div>
+    <section class="panel summary">
+      <h3><span data-ico="chart"></span>Route Profile &amp; EVA Summary</h3>
+      <div class="sumrow">
+        <div id="chart" class="chart"></div>
+        <div class="tiles" id="tiles"></div>
+      </div>
+      <div id="compare" class="compare"></div>
+    </section>
+  </section>
+
+  <aside class="col right">
+    <section class="panel" id="pGoals">
+      <h3><span data-ico="flask"></span>Science Goals (<span id="goalsRegion">-</span>)</h3>
+      <div id="goals"></div>
+    </section>
+    <section class="panel" id="pEva">
+      <h3><span data-ico="suit"></span>EVA &amp; Suit Settings <button id="evaEdit" class="mini">Edit</button></h3>
+      <div id="eva"></div>
+    </section>
+    <section class="panel" id="pRad">
+      <h3><span data-ico="shield"></span>Radiation &amp; Space Weather <span id="radBadge" class="badge">-</span></h3>
+      <div id="rad"></div>
+    </section>
+    <section class="panel" id="pPov">
+      <h3><span data-ico="camera"></span>Point-of-View (Perseverance)</h3>
+      <div class="pov">
+        <button id="povPrev" aria-label="Previous image">&lsaquo;</button>
+        <a id="povLink" href="#"><img id="povImg" alt=""><div id="povNone" class="none hidden">Image not available</div></a>
+        <button id="povNext" aria-label="Next image">&rsaquo;</button>
+      </div>
+      <div id="povCap" class="cap">-</div>
+    </section>
+  </aside>
+</main>
+
+<footer class="strip">
+  <div><span data-ico="cloud"></span><b>Offline Ready</b><small>(Cached Maps &amp; Data)</small></div>
+  <div><span data-ico="layers"></span><b>Multi-Source NASA Data</b><small id="ftTypes">(data types)</small></div>
+  <div><span data-ico="path"></span><b>Multi-Stop Marswalk</b><small>(Science + Safety)</small></div>
+  <div><span data-ico="shield"></span><b>EVA &amp; Safety Aware</b><small>(Slope, Roughness, Radiation)</small></div>
+  <div><span data-ico="spark"></span><b>AI Assistant</b><small>(Mission &amp; Science Q&amp;A)</small></div>
+</footer>
+<script src="vendor/leaflet.js"></script>
+<script src="dashboard.js"></script>
+</body>
+</html>

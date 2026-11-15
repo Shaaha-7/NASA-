@@ -17,7 +17,7 @@ Senior planetary scientist, geospatial/backend engineer and reviewer for the Mar
 4. **Mars coordinates:** planetocentric latitude, east-positive longitude, Mars 2000 sphere. Confirm each raster's CRS; never assume Earth WGS84.
 5. **Slope only from numerical elevation**, never from imagery or hillshade.
 6. **Never call terrain "safe"**; say lower or higher modelled traversal cost under stated assumptions.
-7. **Backend only.** Do not change visuals or the frontend unless the user asks; make the backend easy for the frontend to use.
+7. **Frontend ownership.** `frontend/index.html`, `app.js`, `globe.js` belong to the frontend team: do not change them unless asked. `frontend/dashboard.*` (mission dashboard) and `frontend/pov.html` (point of view) are ours, built to the user's two reference designs; keep their layout as designed and show only real backend values (missing data is "not loaded" or "n/a").
 8. **Keys stay private:** only in `local_keys.bat` (git-ignored). Check staged files for keys before every push.
 9. **Raw data stays in `C:\NASA_DATA`** or `data/raw` (git-ignored); only code and small config go to GitHub.
 10. **Do not talk about time or deadlines** when recommending upgrades; rank by quality and value.
@@ -51,6 +51,7 @@ Senior planetary scientist, geospatial/backend engineer and reviewer for the Mar
 | U6 | Sun/lighting at route time (illumination and shadow from DEM) | Safety and power | research needed |
 | U7 | More regions (Gale, other candidate human landing sites) via config + prepare | Scalability | todo |
 | U8 | Concurrency for many users (numba nogil, more server workers) | Scalability | todo |
+| U11 | Load MEDA weather (PDS Atmospheres) and CRISM mineral maps so the dashboard's Atmospheric and Spectral layers and the POV weather/mineral cards show real values | Completes the reference UI | todo (data needed) |
 | U9 | Google Maps-style deep zoom: tile server (XYZ tiles, disk cache, offline) for CTX/HiRISE imagery and slope/roughness/geology layers, replacing single overlay images that blur when zoomed | Usable, polished map | todo (backend serves tiles; frontend switches layers to tile URLs) |
 | U10 | Google Earth-style 3D terrain: terrain tiles/heightmaps from the HiRISE 1 m DTM for a 3D view of the walk | Visual impact | todo (backend serves terrain; needs a frontend 3D viewer) |
 
