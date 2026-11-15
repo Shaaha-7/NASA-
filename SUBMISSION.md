@@ -3,7 +3,7 @@
 Ready-to-paste text for the Space Apps project form (all in English). Every number here comes from this repository; see the README for how each one is produced. Lines marked **TEAM TO FILL** need a teammate.
 
 - **Challenge:** Interplanetary Survival Guide: Martian Map
-- **Final project link:** https://github.com/Shaaha-7/NASA-
+- **Final project link:** https://github.com/Shaaha-7/NASA- (MIT License)
 - **Demo link:** **TEAM TO FILL** (Google Drive or YouTube, "anyone with the link", tested in an incognito window)
 - **Team name and members:** **TEAM TO FILL**
 
@@ -38,6 +38,19 @@ MarsPath is a Google Maps-style planner for astronauts walking on Mars. For Jeze
 - **Coordinates:** Mars 2000 sphere (R = 3,396,190 m), planetocentric latitude, east-positive longitude throughout.
 - **Software:** FastAPI backend; Leaflet map, Three.js globe and plain HTML/JS dashboard on the frontend.
 - **Assistant search:** hybrid of BM25 keywords and a local embedding model, merged by reciprocal-rank fusion. Retrieval test: the right document is first for 14 of 15 questions and in the top 3 for 15 of 15.
+
+**How MarsPath meets the challenge**
+
+| Challenge asks for | MarsPath |
+|---|---|
+| A map or tool a Mars astronaut could use on a surface mission | Mission dashboard for planning in the habitat; point-of-view screen for what the crew will see at each stop |
+| Science goals and a chosen location | Jezero Crater; three goals (carbonates as biosignature targets, olivine-rich Séítah, delta stratigraphy) tied to 10 Perseverance sample sites |
+| At least three kinds of data, layered | Seven: topographic (HiRISE and CTX DEMs, MOLA), optical (CTX orthomosaic, rover images), thermal (THEMIS), spectral (CRISM), geologic (USGS SIM 3464), atmospheric (MEDA), radiation (DONKI, RAD reference) |
+| Astronaut safety and space weather | Slope and roughness limits, hazard zones, EVA time check with return reserve, DONKI solar-particle warning, radiation reference |
+| Spacesuit mobility and carried equipment | Suited walking speed reduced for load; signed-grade (uphill vs downhill) walking model; editable EVA settings |
+| A route that reaches the science objectives and avoids obstacles | Multi-stop routes with three profiles, stop reordering, turn-by-turn directions, walking range |
+| Point-of-view imagery | Real Perseverance raw images from the nearest rover stop, cached offline |
+| Current conditions | Live DONKI space weather when online; MEDA weather for the sol of each stop (historical, labelled as such) |
 
 **Why it matters**
 
