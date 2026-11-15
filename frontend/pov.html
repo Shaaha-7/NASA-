@@ -13,8 +13,10 @@ body{font:13px/1.35 "Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif;c
 #bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .shade{position:absolute;inset:0;background:linear-gradient(rgba(250,232,220,.86) 0%,rgba(250,232,220,.35) 22%,rgba(250,232,220,0) 40%)}
 .nav{position:absolute;left:0;right:0;top:0;display:flex;align-items:center;padding:14px 20px;z-index:3}
-.logo{font-weight:700;letter-spacing:.5px;display:flex;align-items:center;gap:8px;font-size:14px}
-.logo i{width:11px;height:11px;background:var(--ink);display:block;box-shadow:6px 6px 0 -2px var(--ink)}
+.logo{font-weight:700;display:flex;align-items:center;gap:8px;font-size:19px;color:var(--ink);text-decoration:none!important;min-width:23%}
+.nav a.logo{font-size:20px}.nav a.logo:hover{text-decoration:none}
+.logo .mark{width:34px;height:34px;flex:none}.logo b{color:#d9651c;font-weight:700}
+.right{display:flex;align-items:center;justify-content:flex-end;gap:12px;min-width:23%}.right img{height:30px;width:auto;display:block}
 .nav nav{flex:1;display:flex;justify-content:center;gap:46px}
 .nav a{color:var(--ink);text-decoration:none;font-size:12.5px}.nav a:hover{text-decoration:underline}
 .upd{font-size:11.5px;color:var(--mut)}
@@ -65,9 +67,16 @@ body{font:13px/1.35 "Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif;c
   <div id="noimg" class="none hidden">No rover image cached for this point</div>
   <div class="shade"></div>
   <div class="nav">
-    <div class="logo"><i></i>MARSPATH</div>
+    <a class="logo" href="dashboard.html" aria-label="MarsPath overview"><svg class="mark" viewBox="0 0 64 64" role="img" aria-label="MarsPath logo">
+      <defs><radialGradient id="mpg2" cx="36%" cy="32%" r="75%"><stop offset="0" stop-color="#ffb37a"/><stop offset=".55" stop-color="#e06a25"/><stop offset="1" stop-color="#8f2f0e"/></radialGradient></defs>
+      <circle cx="30" cy="35" r="24" fill="url(#mpg2)"/>
+      <circle cx="21" cy="27" r="4.2" fill="#b9501a" opacity=".55"/><circle cx="38" cy="46" r="5.5" fill="#a84413" opacity=".5"/><circle cx="16" cy="43" r="2.4" fill="#b9501a" opacity=".5"/>
+      <path d="M11 50 C20 40 24 44 31 35 S42 24 47 16" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-dasharray="1 5.2"/>
+      <circle cx="11" cy="50" r="3.4" fill="#fff" stroke="#8f2f0e" stroke-width="1.4"/>
+      <path d="M47 3c-5 0-9 3.9-9 8.8 0 6.2 9 14.2 9 14.2s9-8 9-14.2C56 6.900 52 3 47 3z" fill="#2a1a12"/><circle cx="47" cy="11.800" r="3.500" fill="#fff"/>
+    </svg><span>Mars<b>Path</b></span></a>
     <nav><a href="dashboard.html">Overview</a><a href="index.html">Science Map</a><a href="dashboard.html">EVA Settings</a></nav>
-    <div class="upd" id="upd">-</div>
+    <div class="right"><div class="upd" id="upd">-</div><img src="vendor/space_apps_logo.svg" alt="NASA Space Apps Challenge 2026"></div>
   </div>
 
   <div class="card stats sl"><div><b id="sA">-</b><sup id="sAu"></sup><small id="sAl">-</small></div><div><b id="sB">-</b><sup id="sBu"></sup><small id="sBl">-</small></div></div>
