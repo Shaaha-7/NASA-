@@ -93,7 +93,7 @@ $("tLayers").onclick = () => { const cb = document.querySelector('[data-row="geo
 $("tSlope").onclick = () => { const on = !S.overlays.slope; setOverlay("slope", on); $("tSlope").classList.toggle("on", on); };
 $("tFit").onclick = () => fit();
 $("tFull").onclick = () => { $("mapwrap").classList.toggle("full"); setTimeout(() => map.invalidateSize(), 60); };
-function fit() { if (S.routeLayer && S.routeLayer.getLayers().length) map.fitBounds(S.routeLayer.getBounds().pad(0.25)); else if (S.region) { const b = S.region.bbox; map.fitBounds([[b.south, b.west], [b.north, b.east]]); } }
+function fit() { if (S.rover && S.fitBounds?.isValid()) map.fitBounds(S.fitBounds.pad(0.3)); else if (S.routeLayer && S.routeLayer.getLayers().length) map.fitBounds(S.routeLayer.getBounds().pad(0.25)); else if (S.region) { const b = S.region.bbox; map.fitBounds([[b.south, b.west], [b.north, b.east]]); } }
 
 // ---------- measured weather (MEDA) card over the map
 function renderWeather() {
@@ -169,8 +169,10 @@ function drawRover() {
   const r = S.rover; if (!r) return;
   const g = L.featureGroup();
   L.geoJSON(r.walkback_envelope, { pane: "overlays", style: { color: "#15803d", weight: 1.5, dashArray: "4 4", fillColor: "#22c55e", fillOpacity: 0.12 } }).addTo(g);
+  S.fitBounds = L.latLngBounds([]);
   r.geometry.coordinates.forEach((line, k) => {
     const ll = line.map(([lo, la]) => [la, lo]);
+    ll.forEach((p) => S.fitBounds.extend(p));
     L.polyline(ll, { pane: "route", color: "#3b1d0a", weight: 7, opacity: 0.7 }).addTo(g);
     L.polyline(ll, { pane: "route", color: k ? "#ffd8a8" : "#ff9a3c", weight: 3.5, dashArray: k ? "3 8" : null }).addTo(g);
   });
