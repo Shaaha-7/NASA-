@@ -24,6 +24,9 @@ MarsPath is a Google Maps-style planner for astronauts walking on Mars. For Jeze
 - **Route details:** each route shows distance, modelled walking time, maximum slope, roughness and an EVA-feasibility check (time out + time back + reserve against the suit's time budget). Turn-by-turn directions add up to the route totals.
 - **Warnings:** each states its rule, value, threshold and data basis: steep grade, rough ground, flagged geologic unit, low-resolution terrain, EVA budget, point moved to walkable ground, recent solar particle activity.
 - **Walking range:** shows where a crew can go and still return within the usable EVA time.
+- **Rover-assisted plan with walk-back check:** the crew drives between stops and walks only at them. Speed (about 10 km/h), crew of two and suit-up time (under 10 min) come from NASA's Space Exploration Vehicle concept fact sheet. At every point of the drive MarsPath checks Apollo's walk-back rule: could the crew walk home within their suit time if the rover failed? Example, landing site to Rochette and Wildcat Ridge: walking alone exceeds the suit budget; the rover plan keeps each suit period to 40 min, and flags Rochette as 13 min beyond walk-back range.
+- **Crew pairs:** set the crew size; shared kit is split between them, and times apply to the whole crew.
+- **Helmet HUD:** a visor-style view over the nearest real Perseverance photo, with compass, EVA time left, next stop and ETA, grade ahead, walk-home time and warnings. You move along the planned route with a slider (labelled as a simulation; nothing is live).
 - **"What's here":** at any point, gives elevation, slope, roughness, geologic unit, walkability with reasons, and the nearest science site, rover stop and hazard.
 - **Science stops:** 10 Perseverance sample sites tied to three science goals (carbonates as biosignature targets, the olivine-rich Séítah unit, delta stratigraphy). Positions come from the rover's own localizations on the sampling sol.
 - **Point of view:** real Perseverance raw images from the nearest rover stop, with MEDA weather from the sol of that stop.
@@ -50,6 +53,8 @@ MarsPath is a Google Maps-style planner for astronauts walking on Mars. For Jeze
 | Spacesuit mobility and carried equipment | Suited walking speed reduced for load; signed-grade (uphill vs downhill) walking model; editable EVA settings |
 | A route that reaches the science objectives and avoids obstacles | Multi-stop routes with three profiles, stop reordering, turn-by-turn directions, walking range |
 | Point-of-view imagery | Real Perseverance raw images from the nearest rover stop, cached offline |
+| Display formats the challenge suggests (habitat screen, tablet, helmet HUD) | Mission dashboard for planning; helmet HUD view along the route |
+| Rovers helping the crew; astronauts working in pairs | Rover-assisted plan with the Apollo walk-back check; crew size with shared kit |
 | Current conditions | Live DONKI space weather when online; MEDA weather for the sol of each stop (historical, labelled as such) |
 
 **Why it matters**
@@ -62,6 +67,8 @@ Crews on Mars will walk to science targets on foot, with limited suit time and n
 - The data is historical. Weather is MEDA's record for a past sol, not a forecast.
 - The radiation figure is a reference from Gale crater (2012-13), not a Jezero measurement.
 - Walking speed and load effects are team assumptions based on an Earth hiking model.
+- The rover drives only where walkers can (conservative), and power and communication range are not modelled.
+- The HUD position is simulated along the planned route; there is no live tracking.
 
 ## NASA data used
 
@@ -79,6 +86,7 @@ Crews on Mars will walk to science targets on foot, with limited suit time and n
 | DONKI space weather (FLR, SEP, CME) | NASA CCMC via api.nasa.gov | Space-weather advisory and route warning |
 | Curiosity RAD surface dose, 0.67 mSv/day (Hassler et al. 2014) | MSL RAD, published | Labelled radiation reference scale |
 | Viking colorized global mosaic 232 m (NASA Ames / USGS) | USGS Astrogeology | 3D globe texture, orientation only |
+| Space Exploration Vehicle concept fact sheet (FS-2011-08-045-JSC) | NASA | Rover speed, crew of two, suitport time, Apollo walk-back rule |
 
 ## Other data and tools
 

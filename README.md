@@ -28,6 +28,8 @@ The 3D globe (http://localhost:8000/app/) now opens the mission dashboard when y
 
 Other pages:
 - **Mission dashboard:** http://localhost:8000/app/dashboard.html (map, layers, multi-stop route, science goals, EVA settings, space weather, rover photos, assistant)
+- **Helmet HUD:** http://localhost:8000/app/hud.html (visor view along the last planned route over real rover photos; move with the slider, play button or arrow keys; simulated position)
+- **Rover + Walk-back:** button on the dashboard's route bar, or `POST /api/v1/routes/rover` (drive between stops, Apollo walk-back check at every point; NASA SEV concept numbers)
 - **Point of view:** http://localhost:8000/app/pov.html (real Perseverance image at a stop with terrain, walkability and solar activity cards); opens from the dashboard's photo panel or a map click
 
 API docs (all endpoints, try-it-out): http://localhost:8000/docs
