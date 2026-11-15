@@ -1,0 +1,352 @@
+{
+  "region_id": "jezero",
+  "source": "Mars 2020 Perseverance MEDA (Mars Environmental Dynamics Analyzer), NASA PDS Atmospheres node",
+  "source_url": "https://atmos.nmsu.edu/PDS/data/PDS4/Mars2020/mars2020_meda/",
+  "method": "Per sol: minimum, maximum and mean of 5-minute means. Air temperature = median of the five ATS sensors (calibrated); ground temperature = TIRS (calibrated); pressure and wind = derived products.",
+  "notes": [
+    "Historical measurements at the rover on that sol, not live conditions and not a forecast.",
+    "Wind is only available on sols where the wind sensors returned valid data.",
+    "A sol's record may not cover all 24 hours: see coverage_h."
+  ],
+  "sites": {
+    "site-01": {
+      "sol": 13,
+      "files": {},
+      "air_temp_c": null,
+      "ground_temp_c": null,
+      "pressure_pa": null,
+      "wind_speed_ms": null,
+      "site_name": "Octavia E. Butler Landing"
+    },
+    "site-02": {
+      "sol": 194,
+      "files": {
+        "air_temp": "https://atmos.nmsu.edu/PDS/data/PDS4/Mars2020/mars2020_meda/data_calibrated_env/sol_0180_0299/sol_0194/WE__0194___________CAL_ATS_________________P01.CSV",
+        "ground_temp": "https://atmos.nmsu.edu/PDS/data/PDS4/Mars2020/mars2020_meda/data_calibrated_env/sol_0180_0299/sol_0194/WE__0194___________CAL_TIRS________________P03.CSV",
+        "pressure": "https://atmos.nmsu.edu/PDS/data/PDS4/Mars2020/mars2020_meda/data_derived_env/sol_0180_0299/sol_0194/WE__0194___________DER_PS__________________P01.CSV",
+        "wind": "https://atmos.nmsu.edu/PDS/data/PDS4/Mars2020/mars2020_meda/data_derived_env/sol_0180_0299/sol_0194/WE__0194___________DER_WS__________________P02.CSV"
+      },
+      "air_temp_c": {
+        "min": -69.1,
+        "max": -14.1,
+        "mean": -39.5,
+        "min_lmst": "22:56",
+        "max_lmst": "14:45",
+        "coverage_h": 7.2
+      },
+      "ground_temp_c": {
+        "min": -74.4,
+        "max": 4.9,
+        "mean": -36.6,
+        "min_lmst": "23:01",
+        "max_lmst": "12:34",
+        "coverage_h": 7.2
+      },
+      "pressure_pa": {
+        "min": 695.0,
+        "max": 715.0,
+        "mean": 703.0,
+        "min_lmst": "12:53",
+        "max_lmst": "19:03",
+        "coverage_h": 7.2
+      },
+      "wind_speed_ms": {
+        "min": 0.4,
+        "max": 6.8,
+        "mean": 3.2,
+        "min_lmst": "20:13",
+        "max_lmst": "13:04",
+        "coverage_h": 4.7
+      },
+      "site_name": "Rochette (Montdenier, Montagnac cores)"
+    },
+    "site-03": {
+      "sol": 262,
+      "files": {
+        "air_temp": "https://atmos.nmsu.edu/PDS/data/PDS4/Mars2020/mars2020_meda/data_calibrated_env/sol_0180_0299/sol_0262/WE__0262___________CAL_ATS_________________P01.CSV",
+        "ground_temp": "https://atmos.nmsu.edu/PDS/data/PDS4/Mars2020/mars2020_meda/data_calibrated_env/sol_0180_0299/sol_0262/WE__0262___________CAL_TIRS________________P03.CSV",
+        "pressure": "https://atmos.nmsu.edu/PDS/data/PDS4/Mars2020/mars2020_meda/data_derived_env/sol_0180_0299/sol_0262/WE__0262___________DER_PS__________________P01.CSV",
+        "wind": "https://atmos.nmsu.edu/PDS/data/PDS4/Mars2020/mars2020_meda/data_derived_env/sol_0180_0299/sol_0262/WE__0262___________DER_WS__________________P02.CSV"
+      },
+      "air_temp_c": {
+        "min": -64.9,
+        "max": -24.1,
+        "mean": -40.4,
+        "min_lmst": "23:03",
+        "max_lmst": "14:03",
+        "coverage_h": 4.9
+      },
+      "ground_temp_c": {
+        "min": -64.2,
+        "max": 1.0,
+        "mean": -27.5,
+        "min_lmst": "23:03",
+        "max_lmst": "13:05",
+        "coverage_h": 4.9
+      },
+      "pressure_pa": {
+        "min": 636.0,
+        "max": 645.0,
+        "mean": 640.0,
+        "min_lmst": "12:00",
+        "max_lmst": "19:00",
+        "coverage_h": 4.6
+      },
+      "wind_speed_ms": {
+        "min": 0.9,
+        "max": 9.7,
+        "mean": 5.1,
+        "min_lmst": "19:02",
+        "max_lmst": "15:01",
+        "coverage_h": 3.9
+      },
+      "site_name": "Brac outcrop, Seitah (Salette, Coulettes cores)"
+    },
+    "site-04": {
+      "sol": 298,
+      "files": {
+        "air_temp": "https://atmos.nmsu.edu/PDS/data/PDS4/Mars2020/mars2020_meda/data_calibrated_env/sol_0180_0299/sol_0298/WE__0298___________CAL_ATS_________________P01.CSV",
+        "ground_temp": "https://atmos.nmsu.edu/PDS/data/PDS4/Mars2020/mars2020_meda/data_calibrated_env/sol_0180_0299/sol_0298/WE__0298___________CAL_TIRS________________P03.CSV",
+        "pressure": "https://atmos.nmsu.edu/PDS/data/PDS4/Mars2020/mars2020_meda/data_derived_env/sol_0180_0299/sol_0298/WE__0298___________DER_PS__________________P01.CSV",
+        "wind": "https://atmos.nmsu.edu/PDS/data/PDS4/Mars2020/mars2020_meda/data_derived_env/sol_0180_0299/sol_0298/WE__0298___________DER_WS__________________P02.CSV"
+      },
+      "air_temp_c": {
+        "min": -74.0,
+        "max": -10.6,
+        "mean": -46.0,
+        "min_lmst": "04:51",
+        "max_lmst": "12:48",
+        "coverage_h": 14.3
+      },
+      "ground_temp_c": {
+        "min": -75.6,
+        "max": 10.6,
+        "mean": -41.3,
+        "min_lmst": "04:47",
+        "max_lmst": "12:29",
+        "coverage_h": 14.2
+      },
+      "pressure_pa": {
+        "min": 607.0,
+        "max": 641.0,
+        "mean": 625.0,
+        "min_lmst": "17:01",
+        "max_lmst": "07:03",
+        "coverage_h": 14.2
+      },
+      "wind_speed_ms": {
+        "min": 0.3,
+        "max": 7.6,
+        "mean": 3.0,
+        "min_lmst": "00:53",
+        "max_lmst": "14:31",
+        "coverage_h": 10.3
+      },
+      "site_name": "Issole, Seitah (Robine core)"
+    },
+    "site-05": {
+      "sol": 490,
+      "files": {
+        "air_temp": "https://atmos.nmsu.edu/PDS/data/PDS4/Mars2020/mars2020_meda/data_calibrated_env/sol_0420_0539/sol_0490/WE__0490___________CAL_ATS_________________P01.CSV",
+        "ground_temp": "https://atmos.nmsu.edu/PDS/data/PDS4/Mars2020/mars2020_meda/data_calibrated_env/sol_0420_0539/sol_0490/WE__0490___________CAL_TIRS________________P01.CSV",
+        "pressure": "https://atmos.nmsu.edu/PDS/data/PDS4/Mars2020/mars2020_meda/data_derived_env/sol_0420_0539/sol_0490/WE__0490___________DER_PS__________________P01.CSV"
+      },
+      "air_temp_c": {
+        "min": -81.7,
+        "max": -27.4,
+        "mean": -58.5,
+        "min_lmst": "05:00",
+        "max_lmst": "14:01",
+        "coverage_h": 11.7
+      },
+      "ground_temp_c": {
+        "min": -83.9,
+        "max": -0.5,
+        "mean": -53.6,
+        "min_lmst": "06:05",
+        "max_lmst": "13:00",
+        "coverage_h": 11.7
+      },
+      "pressure_pa": {
+        "min": 777.0,
+        "max": 817.0,
+        "mean": 798.0,
+        "min_lmst": "16:37",
+        "max_lmst": "21:24",
+        "coverage_h": 11.7
+      },
+      "wind_speed_ms": null,
+      "site_name": "Skinner Ridge, delta front (Swift Run, Skyland cores)"
+    },
+    "site-06": {
+      "sol": 509,
+      "files": {
+        "air_temp": "https://atmos.nmsu.edu/PDS/data/PDS4/Mars2020/mars2020_meda/data_calibrated_env/sol_0420_0539/sol_0509/WE__0509___________CAL_ATS_________________P01.CSV",
+        "ground_temp": "https://atmos.nmsu.edu/PDS/data/PDS4/Mars2020/mars2020_meda/data_calibrated_env/sol_0420_0539/sol_0509/WE__0509___________CAL_TIRS________________P01.CSV",
+        "pressure": "https://atmos.nmsu.edu/PDS/data/PDS4/Mars2020/mars2020_meda/data_derived_env/sol_0420_0539/sol_0509/WE__0509___________DER_PS__________________P01.CSV"
+      },
+      "air_temp_c": {
+        "min": -84.0,
+        "max": -18.0,
+        "mean": -58.0,
+        "min_lmst": "06:19",
+        "max_lmst": "15:19",
+        "coverage_h": 11.1
+      },
+      "ground_temp_c": {
+        "min": -85.1,
+        "max": -8.8,
+        "mean": -57.8,
+        "min_lmst": "06:14",
+        "max_lmst": "13:18",
+        "coverage_h": 11.1
+      },
+      "pressure_pa": {
+        "min": 767.0,
+        "max": 804.0,
+        "mean": 790.0,
+        "min_lmst": "17:06",
+        "max_lmst": "07:18",
+        "coverage_h": 11.1
+      },
+      "wind_speed_ms": null,
+      "site_name": "Wildcat Ridge, delta front (Hazeltop, Bearwallow cores)"
+    },
+    "site-07": {
+      "sol": 574,
+      "files": {
+        "air_temp": "https://atmos.nmsu.edu/PDS/data/PDS4/Mars2020/mars2020_meda/data_calibrated_env/sol_0540_0659/sol_0574/WE__0574___________CAL_ATS_________________P01.CSV",
+        "ground_temp": "https://atmos.nmsu.edu/PDS/data/PDS4/Mars2020/mars2020_meda/data_calibrated_env/sol_0540_0659/sol_0574/WE__0574___________CAL_TIRS________________P02.CSV",
+        "pressure": "https://atmos.nmsu.edu/PDS/data/PDS4/Mars2020/mars2020_meda/data_derived_env/sol_0540_0659/sol_0574/WE__0574___________DER_PS__________________P01.CSV"
+      },
+      "air_temp_c": {
+        "min": -82.6,
+        "max": -22.6,
+        "mean": -59.7,
+        "min_lmst": "07:13",
+        "max_lmst": "14:11",
+        "coverage_h": 9.4
+      },
+      "ground_temp_c": {
+        "min": -84.0,
+        "max": -18.7,
+        "mean": -59.6,
+        "min_lmst": "07:03",
+        "max_lmst": "14:00",
+        "coverage_h": 9.4
+      },
+      "pressure_pa": {
+        "min": 715.0,
+        "max": 759.0,
+        "mean": 743.0,
+        "min_lmst": "05:11",
+        "max_lmst": "00:00",
+        "coverage_h": 9.3
+      },
+      "wind_speed_ms": null,
+      "site_name": "Amalik outcrop, delta front (Shuyak core)"
+    },
+    "site-08": {
+      "sol": 653,
+      "files": {
+        "air_temp": "https://atmos.nmsu.edu/PDS/data/PDS4/Mars2020/mars2020_meda/data_calibrated_env/sol_0540_0659/sol_0653/WE__0653___________CAL_ATS_________________P01.CSV",
+        "ground_temp": "https://atmos.nmsu.edu/PDS/data/PDS4/Mars2020/mars2020_meda/data_calibrated_env/sol_0540_0659/sol_0653/WE__0653___________CAL_TIRS________________P02.CSV",
+        "pressure": "https://atmos.nmsu.edu/PDS/data/PDS4/Mars2020/mars2020_meda/data_derived_env/sol_0540_0659/sol_0653/WE__0653___________DER_PS__________________P01.CSV"
+      },
+      "air_temp_c": {
+        "min": -82.2,
+        "max": -21.0,
+        "mean": -53.0,
+        "min_lmst": "06:39",
+        "max_lmst": "14:21",
+        "coverage_h": 18.7
+      },
+      "ground_temp_c": {
+        "min": -89.5,
+        "max": 4.2,
+        "mean": -48.8,
+        "min_lmst": "06:24",
+        "max_lmst": "13:42",
+        "coverage_h": 18.7
+      },
+      "pressure_pa": {
+        "min": 707.0,
+        "max": 754.0,
+        "mean": 726.0,
+        "min_lmst": "18:10",
+        "max_lmst": "09:00",
+        "coverage_h": 18.7
+      },
+      "wind_speed_ms": null,
+      "site_name": "Three Forks sample depot"
+    },
+    "site-09": {
+      "sol": 749,
+      "files": {
+        "air_temp": "https://atmos.nmsu.edu/PDS/data/PDS4/Mars2020/mars2020_meda/data_calibrated_env/sol_0660_0779/sol_0749/WE__0749___________CAL_ATS_________________P01.CSV",
+        "ground_temp": "https://atmos.nmsu.edu/PDS/data/PDS4/Mars2020/mars2020_meda/data_calibrated_env/sol_0660_0779/sol_0749/WE__0749___________CAL_TIRS________________P01.CSV",
+        "pressure": "https://atmos.nmsu.edu/PDS/data/PDS4/Mars2020/mars2020_meda/data_derived_env/sol_0660_0779/sol_0749/WE__0749___________DER_PS__________________P01.CSV"
+      },
+      "air_temp_c": {
+        "min": -77.6,
+        "max": -14.5,
+        "mean": -51.7,
+        "min_lmst": "05:16",
+        "max_lmst": "15:05",
+        "coverage_h": 11.2
+      },
+      "ground_temp_c": {
+        "min": -81.6,
+        "max": -1.8,
+        "mean": -50.5,
+        "min_lmst": "05:30",
+        "max_lmst": "13:08",
+        "coverage_h": 11.2
+      },
+      "pressure_pa": {
+        "min": 738.0,
+        "max": 754.0,
+        "mean": 746.0,
+        "min_lmst": "12:10",
+        "max_lmst": "07:03",
+        "coverage_h": 11.2
+      },
+      "wind_speed_ms": null,
+      "site_name": "Berea, upper fan (Melyn core)"
+    },
+    "site-10": {
+      "sol": 921,
+      "files": {
+        "air_temp": "https://atmos.nmsu.edu/PDS/data/PDS4/Mars2020/mars2020_meda/data_calibrated_env/sol_0900_1019/sol_0921/WE__0921___________CAL_ATS_________________P01.CSV",
+        "ground_temp": "https://atmos.nmsu.edu/PDS/data/PDS4/Mars2020/mars2020_meda/data_calibrated_env/sol_0900_1019/sol_0921/WE__0921___________CAL_TIRS________________P02.CSV",
+        "pressure": "https://atmos.nmsu.edu/PDS/data/PDS4/Mars2020/mars2020_meda/data_derived_env/sol_0900_1019/sol_0921/WE__0921___________DER_PS__________________P01.CSV"
+      },
+      "air_temp_c": {
+        "min": -73.8,
+        "max": -6.0,
+        "mean": -49.6,
+        "min_lmst": "03:53",
+        "max_lmst": "15:00",
+        "coverage_h": 9.5
+      },
+      "ground_temp_c": {
+        "min": -79.8,
+        "max": 6.2,
+        "mean": -41.3,
+        "min_lmst": "05:00",
+        "max_lmst": "12:10",
+        "coverage_h": 7.8
+      },
+      "pressure_pa": {
+        "min": 628.0,
+        "max": 648.0,
+        "mean": 635.0,
+        "min_lmst": "12:14",
+        "max_lmst": "07:13",
+        "coverage_h": 9.5
+      },
+      "wind_speed_ms": null,
+      "site_name": "Hans Amundsen Memorial Workspace, margin unit (Pelican Point core)"
+    }
+  }
+}

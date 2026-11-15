@@ -381,3 +381,22 @@ def test_meda_statistics_use_binned_means():
     s = fetch_meda.stats(means, labels)
     assert s["max"] < 210 and s["min"] == 200.0
     assert fetch_meda.k_to_c(s)["min"] == round(200.0 - 273.15, 1)
+
+
+def test_packaged_meda_summary_is_physically_plausible():
+    """The shipped Jezero MEDA summary: missing data is null (never 0) and values sit in Mars-surface ranges."""
+    path = ROOT / "config" / "weather" / "jezero_meda.json"
+    if not path.exists():
+        pytest.skip("MEDA summary not built")
+    data = json.loads(path.read_text(encoding="utf-8"))
+    assert data["source_url"].startswith("https://atmos.nmsu.edu/")
+    sites = json.loads((ROOT / "config" / "science_sites" / "jezero.geojson").read_text(encoding="utf-8"))
+    assert {f["properties"]["id"] for f in sites["features"]} == set(data["sites"])
+    ranges = {"air_temp_c": (-120, 35), "ground_temp_c": (-130, 40), "pressure_pa": (400, 1200), "wind_speed_ms": (0, 40)}
+    for rec in data["sites"].values():
+        for key, (lo, hi) in ranges.items():
+            v = rec[key]
+            if v is None:
+                continue
+            assert lo <= v["min"] <= v["mean"] <= v["max"] <= hi, (rec["sol"], key, v)
+            assert 0 < v["coverage_h"] <= 24.7

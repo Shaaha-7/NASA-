@@ -1,7 +1,8 @@
 // Caches the app shell so the page itself opens with no network.
 // All data comes from the local backend, which reads only the packaged region.
-const CACHE = "marspath-shell-v3";
+const CACHE = "marspath-shell-v4";
 const SHELL = ["./", "index.html", "style.css", "app.js", "globe.js", "vendor/leaflet.js", "vendor/leaflet.css",
+  "dashboard.html", "dashboard.css", "dashboard.js", "pov.html", "vendor/space_apps_logo.svg",
   "vendor/three.module.min.js", "vendor/mars_globe_4k.jpg",
   "vendor/images/marker-icon.png", "vendor/images/marker-shadow.png", "vendor/images/layers.png"];
 
