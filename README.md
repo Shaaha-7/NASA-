@@ -19,6 +19,8 @@ Try this:
 - Optionally click a pin and choose **Add as stop**.
 - Press **Calculate route** or **Compare profiles**.
 
+The 3D globe (http://localhost:8000/app/) now opens the mission dashboard when you pick a region or press **Skip to map**. The earlier map page is still at http://localhost:8000/app/?classic=1.
+
 Other pages:
 - **Mission dashboard:** http://localhost:8000/app/dashboard.html (map, layers, multi-stop route, science goals, EVA settings, space weather, rover photos, assistant)
 - **Point of view:** http://localhost:8000/app/pov.html (real Perseverance image at a stop with terrain, walkability and solar activity cards); opens from the dashboard's photo panel or a map click

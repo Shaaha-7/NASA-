@@ -303,7 +303,8 @@ function openAssistant() {
 (async function init() {
   try {
     const regs = await api("/regions"); const list = regs.regions || regs;
-    S.region = list.find((r) => !r.is_test_fixture) || list[0];
+    const want = new URLSearchParams(location.search).get("region_id");
+    S.region = list.find((r) => r.region_id === want) || list.find((r) => !r.is_test_fixture) || list[0];
     if (!S.region) { msg("No prepared region. Run setup and prepare the data first."); return; }
     const b = S.region.bbox; map.fitBounds([[b.south, b.west], [b.north, b.east]]);
     $("regionName").textContent = shortName(S.region.name).replace(/ - .*/, "");

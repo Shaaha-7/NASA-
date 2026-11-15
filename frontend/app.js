@@ -821,6 +821,9 @@ $("dAsk").onclick = () => { $("askBox").open = true; $("askBox").scrollIntoView(
 $("dGlobe").onclick = () => showGlobe();
 
 // ---------------------------------------------------------------- 3D globe bridge (globe.js is an ES module)
+// The globe leads to the mission dashboard. Add ?classic=1 to index.html to open the earlier map page instead.
+const CLASSIC = new URLSearchParams(location.search).has("classic");
+function goDashboard(regionId) { location.href = "dashboard.html" + (regionId ? "?region_id=" + encodeURIComponent(regionId) : ""); }
 function hideGlobe() {
   if ($("globeScreen").classList.contains("hidden")) return;
   $("globeScreen").classList.add("hidden"); window.dispatchEvent(new Event("globe:hidden"));
@@ -831,22 +834,23 @@ function showGlobe() {
   $("globeScreen").classList.remove("hidden"); window.dispatchEvent(new Event("globe:shown")); $("skipGlobe").focus();
 }
 window.MarsPath = {
-  api, toast, hideGlobe, showGlobe,
+  api, toast, showGlobe, hideGlobe: () => (CLASSIC ? hideGlobe() : goDashboard(S.region)),
   openRegion: async (id) => {
     try {
       await S.ready;
       const info = (S.regions || []).find((g) => g.region_id === id);
       if (info && S.region !== id) { $("region").value = id; await selectRegion(id, info); }
     } catch (e) { toast(e.message); }
+    if (!CLASSIC) { goDashboard(id); return; }
     hideGlobe();
     const b = S.regionInfo && S.regionInfo.bbox; if (b) map.fitBounds([[b.south, b.west], [b.north, b.east]]);
   },
 };
-$("skipGlobe").onclick = hideGlobe;
+$("skipGlobe").onclick = () => (CLASSIC ? hideGlobe() : goDashboard(S.region));
 $("globeBtn").onclick = showGlobe;
 $("skipGlobe").focus();
 // If the globe module cannot load or start (old browser, no WebGL, missing file), fall back to the map.
-setTimeout(() => { if (!window.globeReady && !$("globeScreen").classList.contains("hidden")) { window.globeFailed = true; hideGlobe(); toast("3D globe not available; showing the map.", 5000); } }, 12000);
+setTimeout(() => { if (!window.globeReady && !$("globeScreen").classList.contains("hidden")) { window.globeFailed = true; if (CLASSIC) { hideGlobe(); toast("3D globe not available; showing the map.", 5000); } else goDashboard(S.region); } }, 12000);
 
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
 S.ready = (async () => {
