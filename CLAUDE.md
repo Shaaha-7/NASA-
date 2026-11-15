@@ -51,6 +51,10 @@ Senior planetary scientist, geospatial/backend engineer and reviewer for the Mar
 | U6 | Sun/lighting at route time (illumination and shadow from DEM) | Safety and power | research needed |
 | U7 | More regions (Gale, other candidate human landing sites) via config + prepare | Scalability | todo |
 | U8 | Concurrency for many users (numba nogil, more server workers) | Scalability | todo |
+| U9 | Google Maps-style deep zoom: tile server (XYZ tiles, disk cache, offline) for CTX/HiRISE imagery and slope/roughness/geology layers, replacing single overlay images that blur when zoomed | Usable, polished map | todo (backend serves tiles; frontend switches layers to tile URLs) |
+| U10 | Google Earth-style 3D terrain: terrain tiles/heightmaps from the HiRISE 1 m DTM for a 3D view of the walk | Visual impact | todo (backend serves terrain; needs a frontend 3D viewer) |
+
+Google Maps-style features already built: directions, search, "what's here", rover ground view (street-view analogue), walking range.
 
 ## 5. Quality gates for every result
 Source check · physics/units check · resolution check · honest limitations stated · tests pass · no keys staged.
