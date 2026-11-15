@@ -102,7 +102,9 @@ function bearing(a, b) { // initial bearing on a sphere, degrees from north, eas
   return (Math.atan2(Math.sin(dl) * Math.cos(p2), Math.cos(p1) * Math.sin(p2) - Math.sin(p1) * Math.cos(p2) * Math.cos(dl)) / r + 360) % 360;
 }
 function at(km) { // interpolate the route profile at a distance
-  const p = H.prof; let i = p.findIndex((d) => d.distance_km >= km); if (i <= 0) return { ...p[Math.max(i, 0)], i: Math.max(i, 0) };
+  const p = H.prof, last = p.length - 1;
+  if (km >= p[last].distance_km) return { ...p[last], i: last };   // end of route (also guards rounding)
+  let i = p.findIndex((d) => d.distance_km >= km); if (i <= 0) return { ...p[0], i: 0 };
   const a = p[i - 1], b = p[i], t = (km - a.distance_km) / ((b.distance_km - a.distance_km) || 1), L = (k) => a[k] + (b[k] - a[k]) * t;
   return { distance_km: km, lon: L("lon"), lat: L("lat"), elevation_m: L("elevation_m"), eta_min: L("eta_min"), walk_home_min: L("walk_home_min"), grade_deg: b.grade_deg, i };
 }
@@ -143,7 +145,7 @@ async function groundView(p) {
   } catch { /* keep previous image */ }
 }
 function render() {
-  const r = H.route, total = r.distance_km, km = (H.pos / 1000) * total, p = at(km), usable = r.eva.usable_min;
+  const r = H.route, total = H.prof[H.prof.length - 1].distance_km, km = (H.pos / 1000) * total, p = at(km), usable = r.eva.usable_min;
   $("posTxt").textContent = km.toFixed(2) + " km";
   // heading: direction of travel over the next ~60 m
   const q = at(Math.min(total, km + 0.06)), pr = at(Math.max(0, km - 0.06)), hdg = bearing(pr, q);
@@ -154,7 +156,8 @@ function render() {
   const elapsed = p.eta_min, left = usable - elapsed - (r.eva.round_trip ? 0 : 0);
   ring(left, usable);
   $("crew").textContent = `${r.eva_params.crew_size} · ${r.eva_params.derived.load_per_person_kg} kg each`;
-  $("nextName").textContent = nxt.name;
+  const arrived = km >= total - 0.005;
+  $("nextName").textContent = arrived ? `Arrived: ${nxt.name}` : nxt.name;
   $("nextDist").textContent = `${Math.max(0, nxt.at_distance_km - km).toFixed(2)} km`;
   $("nextEta").textContent = `${hm(Math.max(0, nxt.eta_min - elapsed))} h:mm walking`;
   // grade ahead: steepest grade in the next 100 m of the profile
