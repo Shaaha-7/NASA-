@@ -129,13 +129,22 @@ async function calc() {
       S.rover = await api("/routes/rover", { method: "POST", body: JSON.stringify(body) });
       S.route = null; $("compare").innerHTML = "";
       drawRover(); renderRoverSummary(); renderWeather(); return;
-    }
-    if (S.profile === "compare") {
-      const d = await api("/routes/compare", { method: "POST", body: JSON.stringify({ ...body, profiles: ["gentlest", "fastest", "shortest"] }) });
-      const routes = d.routes || [];
-      renderCompare(routes);
-      S.route = routes.find((r) => r.profile === "gentlest") || routes[0];
-    } else {
+}
+if (S.profile === "compare") {
+  const profiles = ["gentlest", "fastest", "shortest"];
+
+  const routes = await Promise.all(
+    profiles.map(profile =>
+      api("/routes/calculate", {
+        method: "POST",
+        body: JSON.stringify({ ...body, profile })
+      })
+    )
+  );
+
+  renderCompare(routes);
+  S.route = routes.find(r => r.profile === "gentlest") || routes[0];
+} else {
       S.route = await api("/routes/calculate", { method: "POST", body: JSON.stringify({ ...body, profile: S.profile }) });
       $("compare").innerHTML = "";
     }
