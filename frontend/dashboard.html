@@ -10,8 +10,15 @@
 <body>
 <header class="top">
   <div class="brand">
-    <div class="planet" aria-hidden="true"></div>
-    <div><div class="name">MarsPath</div><div class="tag">Marswalk Planner for Human Exploration</div></div>
+    <svg class="mark" viewBox="0 0 64 64" role="img" aria-label="MarsPath logo">
+      <defs><radialGradient id="mpg" cx="36%" cy="32%" r="75%"><stop offset="0" stop-color="#ffb37a"/><stop offset=".55" stop-color="#e06a25"/><stop offset="1" stop-color="#8f2f0e"/></radialGradient></defs>
+      <circle cx="30" cy="35" r="24" fill="url(#mpg)"/>
+      <circle cx="21" cy="27" r="4.2" fill="#b9501a" opacity=".55"/><circle cx="38" cy="46" r="5.5" fill="#a84413" opacity=".5"/><circle cx="16" cy="43" r="2.4" fill="#b9501a" opacity=".5"/>
+      <path d="M11 50 C20 40 24 44 31 35 S42 24 47 16" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-dasharray="1 5.2"/>
+      <circle cx="11" cy="50" r="3.4" fill="#fff" stroke="#8f2f0e" stroke-width="1.4"/>
+      <path d="M47 3c-5 0-9 3.9-9 8.8 0 6.2 9 14.2 9 14.2s9-8 9-14.2C56 6.900 52 3 47 3z" fill="#2a1a12"/><circle cx="47" cy="11.800" r="3.500" fill="#fff"/>
+    </svg>
+    <div><div class="name">Mars<span>Path</span></div><div class="tag">Marswalk Planner for Human Exploration</div></div>
   </div>
   <nav class="tabs" id="tabs">
     <button class="tab active" data-tab="map"><span data-ico="map"></span>Map &amp; Plan</button>
@@ -20,7 +27,7 @@
     <button class="tab" data-tab="assistant"><span data-ico="spark"></span>Assistant</button>
     <button class="tab" data-tab="offline"><span data-ico="download"></span>Offline</button>
   </nav>
-  <div class="event"><div class="ev1">NASA Space Apps 2026</div><div class="ev2">Interplanetary Survival Guide:<br>Martian Map</div></div>
+  <div class="event"><div class="ev2">Interplanetary Survival Guide:<br>Martian Map</div><img src="vendor/space_apps_logo.svg" alt="NASA Space Apps Challenge 2026"></div>
 </header>
 
 <main class="grid">
@@ -43,23 +50,23 @@
   <section class="col mid">
     <div class="mapwrap panel" id="mapwrap">
       <div id="map"></div>
-      <div class="north" aria-hidden="true">N<i></i></div>
-      <div class="tools">
+      <div class="north glass" aria-hidden="true">N<i></i></div>
+      <div class="tools glass">
         <button id="tLayers" title="Toggle geologic units"><span data-ico="layers"></span></button>
         <button id="tFit" title="Fit route"><span data-ico="target"></span></button>
         <a id="t3d" href="index.html" title="3D globe">3D</a>
         <button id="tSlope" title="Toggle slope layer"><span data-ico="mountain"></span></button>
         <button id="tFull" title="Expand map"><span data-ico="expand"></span></button>
       </div>
-      <div class="zoom"><button id="zin">+</button><button id="zout">&minus;</button></div>
+      <div class="zoom"><button id="zin" class="glass">+</button><button id="zout" class="glass">&minus;</button></div>
       <div class="profiles" id="profiles">
-        <button data-p="gentlest" class="active"><span data-ico="leaf"></span>Gentlest (Safer)</button>
-        <button data-p="fastest"><span data-ico="gauge"></span>Fastest</button>
-        <button data-p="shortest"><span data-ico="path"></span>Shortest</button>
-        <button data-p="compare"><span data-ico="scale"></span>Compare Routes</button>
+        <button data-p="gentlest" class="glass active"><span data-ico="leaf"></span>Gentlest (Safer)</button>
+        <button data-p="fastest" class="glass"><span data-ico="gauge"></span>Fastest</button>
+        <button data-p="shortest" class="glass"><span data-ico="path"></span>Shortest</button>
+        <button data-p="compare" class="glass"><span data-ico="scale"></span>Compare Routes</button>
       </div>
       <div id="mapmsg" class="mapmsg hidden"></div>
-      <div id="wx" class="wx hidden"></div>
+      <div id="wx" class="wx glass hidden"></div>
       <div id="drawer" class="drawer hidden"></div>
     </div>
     <section class="panel summary">

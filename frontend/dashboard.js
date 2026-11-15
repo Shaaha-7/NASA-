@@ -85,7 +85,7 @@ function renderLegend() {
   const items = S.layers.geology?.legend?.items || [];
   const sp = LAYER_ROWS.find((r) => r.key === "spectral"), lg = sp.on && S.layers[sp.ids[0]]?.legend;
   const crism = lg ? `<div style="display:block;border-bottom:1px solid var(--line2);padding-bottom:5px;margin-bottom:4px"><b>CRISM ${sp.ids[0] === "crism_mafic" ? "mafic" : "carbonate"} map</b><br>
-    <span style="color:#ff8080">R</span> ${esc(lg.red)} · <span style="color:#7dff9a">G</span> ${esc(lg.green)} · <span style="color:#8ab4ff">B</span> ${esc(lg.blue)}<br><span style="color:var(--mut)">${esc(lg.reading)}</span></div>` : "";
+    <span style="color:#c0392b">R</span> ${esc(lg.red)} · <span style="color:#1e8449">G</span> ${esc(lg.green)} · <span style="color:#2456c7">B</span> ${esc(lg.blue)}<br><span style="color:var(--mut)">${esc(lg.reading)}</span></div>` : "";
   $("legend").innerHTML = crism + (items.length ? items.map(([n, c]) => `<div><i style="background:${esc(c)}"></i>${esc(n)}</div>`).join("") : `<div>Geologic map ${NA}</div>`);
 }
 $("tLayers").onclick = () => { const cb = document.querySelector('[data-row="geology"]'); if (cb && !cb.disabled) { cb.checked = !cb.checked; cb.onchange(); } };
@@ -175,12 +175,12 @@ function drawChart(r) {
   const yt = [0, 1, 2, 3].map((i) => y0 + ((y1 - y0) * i) / 3), xt = [0, 1, 2, 3, 4].map((i) => (x1 * i) / 4);
   const stops = (r.stops || []).slice(1, -1).map((s, i) => {
     const d = p.reduce((a, b) => (Math.abs(b.distance_km - s.at_distance_km) < Math.abs(a.distance_km - s.at_distance_km) ? b : a));
-    return `<circle cx="${X(d.distance_km)}" cy="${Y(d.elevation_m)}" r="3.5" fill="#1b1b1b" stroke="#fff" stroke-width="1.5"/><text x="${X(d.distance_km)}" y="${Y(d.elevation_m) - 8}" text-anchor="middle" fill="#fff" font-size="12" font-weight="700">S${i + 1}</text>`;
+    return `<circle cx="${X(d.distance_km)}" cy="${Y(d.elevation_m)}" r="3.5" fill="#fff" stroke="#2a1a12" stroke-width="1.5"/><text x="${X(d.distance_km)}" y="${Y(d.elevation_m) - 8}" text-anchor="middle" fill="#2a1a12" font-size="12" font-weight="700">S${i + 1}</text>`;
   }).join("");
-  $("chart").innerHTML = `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none"><defs><linearGradient id="ar" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ff8a2a" stop-opacity=".55"/><stop offset="1" stop-color="#ff8a2a" stop-opacity="0"/></linearGradient></defs>
-    ${yt.map((v) => `<line x1="${L0}" x2="${W - R0}" y1="${Y(v)}" y2="${Y(v)}" stroke="rgba(255,255,255,.08)"/><text x="${L0 - 6}" y="${Y(v) + 4}" text-anchor="end" fill="#c9b8ac" font-size="10.5">${Math.round(v).toLocaleString("en-US").replace("-", "−")} m</text>`).join("")}
-    ${xt.map((v) => `<text x="${X(v)}" y="${H - 5}" text-anchor="middle" fill="#c9b8ac" font-size="10.5">${v.toFixed(1)} km</text>`).join("")}
-    <path d="${line} L${X(x1)} ${H - B} L${X(0)} ${H - B} Z" fill="url(#ar)"/><path d="${line}" fill="none" stroke="#ff9a3c" stroke-width="2"/>${stops}</svg>`;
+  $("chart").innerHTML = `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none"><defs><linearGradient id="ar" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e06a25" stop-opacity=".5"/><stop offset="1" stop-color="#ff8a2a" stop-opacity="0"/></linearGradient></defs>
+    ${yt.map((v) => `<line x1="${L0}" x2="${W - R0}" y1="${Y(v)}" y2="${Y(v)}" stroke="rgba(90,50,30,.14)"/><text x="${L0 - 6}" y="${Y(v) + 4}" text-anchor="end" fill="#6b574b" font-size="10.5">${Math.round(v).toLocaleString("en-US").replace("-", "−")} m</text>`).join("")}
+    ${xt.map((v) => `<text x="${X(v)}" y="${H - 5}" text-anchor="middle" fill="#6b574b" font-size="10.5">${v.toFixed(1)} km</text>`).join("")}
+    <path d="${line} L${X(x1)} ${H - B} L${X(0)} ${H - B} Z" fill="url(#ar)"/><path d="${line}" fill="none" stroke="#d9651c" stroke-width="2"/>${stops}</svg>`;
 }
 function renderCompare(routes) {
   $("compare").innerHTML = routes.length ? `<table><tr><th>Profile</th><th>Distance</th><th>EVA time</th><th>Max slope</th><th>Budget</th></tr>${routes.map((r) =>

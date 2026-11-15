@@ -23,3 +23,5 @@ Everything here is served locally so the app works offline. Each file's origin a
 ## leaflet.js, leaflet.css, images/
 
 Leaflet (BSD-2-Clause), already in the repository before the frontend-ui branch.
+
+- `space_apps_logo.svg`: official NASA Space Apps Challenge 2026 logo ("Color and Black"), from the NASA Space Apps brand page https://www.spaceappschallenge.org/brand/ (logo pack NASA_Space_Apps_Logos_2026.zip). Use it unchanged, per the Space Apps brand guidelines.
