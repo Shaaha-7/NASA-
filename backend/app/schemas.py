@@ -29,6 +29,8 @@ class EvaOverrides(BaseModel):
     roughness_max_m: float | None = None
     roughness_caution_m: float | None = None
     round_trip: bool | None = None
+    crew_size: int | None = Field(None, ge=1, le=4)
+    shared_load_kg: float | None = Field(None, ge=0, le=400)
 
 
 class RouteRequest(BaseModel):
@@ -70,3 +72,15 @@ class AskRequest(BaseModel):
     region_id: str | None = None
     lon: float | None = None
     lat: float | None = None
+
+
+class RoverParams(BaseModel):
+    rover_type: Literal["pressurized", "unpressurized"] = Field(
+        "pressurized", description="pressurized: crew rides in a cabin (NASA SEV concept); unpressurized: crew rides in suits (Apollo LRV / SEV Chariot style)")
+    speed_kmh: float = Field(10.0, ge=1, le=20, description="Driving speed on flat smooth ground (NASA SEV concept: about 10 km/h)")
+    stop_minutes: float = Field(30.0, ge=0, le=240, description="EVA work time at each stop (team assumption)")
+    suitport_minutes: float = Field(10.0, ge=0, le=60, description="Suit-up and exit through the suitport, each way (NASA SEV concept: under 10 min)")
+
+
+class RoverRouteRequest(RouteRequest):
+    rover: RoverParams = Field(default_factory=RoverParams)

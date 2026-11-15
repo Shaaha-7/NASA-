@@ -22,6 +22,7 @@ const ICONS = {
   slope: "M3 19h18L15 7l-4 6-2-3z", speed: "M13 5a1.5 1.5 0 1 0 0 .1M10 21l2-6-3-3 2-4 3 2 3 1M7 12l3-4", bag: "M6 8h12l1 12H5zM9 8V6a3 3 0 0 1 6 0v2", clock: "M12 12m-8 0a8 8 0 1 0 16 0a8 8 0 1 0-16 0M12 8v4l3 2",
   back: "M4 12a8 8 0 1 0 3-6M4 5v5h5", sun: "M12 12m-4 0a4 4 0 1 0 8 0a4 4 0 1 0-8 0M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2", rad: "M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0-18 0M12 12m-1.5 0a1.5 1.5 0 1 0 3 0a1.5 1.5 0 1 0-3 0M12 10V4M10.3 13l-5 3M13.7 13l5 3",
   dist: "M6 20a2 2 0 1 0 0-.1M18 6a2 2 0 1 0 0-.1M8 19h6a3 3 0 0 0 0-6h-4a3 3 0 0 1 0-6h6", rough: "M3 14l3-5 3 7 3-9 3 8 3-4 3 3",
+  rover: "M3 15h18v-4l-3-4H9L6 11H3zM7 18m-2 0a2 2 0 1 0 4 0a2 2 0 1 0-4 0M17 18m-2 0a2 2 0 1 0 4 0a2 2 0 1 0-4 0", crew: "M8 8m-3 0a3 3 0 1 0 6 0a3 3 0 1 0-6 0M16 8m-3 0a3 3 0 1 0 6 0a3 3 0 1 0-6 0M2 20c0-4 3-6 6-6s6 2 6 6M12 15c1-1 2.5-1 4-1 3 0 6 2 6 6",
 };
 const ico = (n) => `<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="${ICONS[n] || ""}"/></svg>`;
 document.querySelectorAll("[data-ico]").forEach((e) => (e.outerHTML = ico(e.dataset.ico)));
@@ -92,7 +93,7 @@ $("tLayers").onclick = () => { const cb = document.querySelector('[data-row="geo
 $("tSlope").onclick = () => { const on = !S.overlays.slope; setOverlay("slope", on); $("tSlope").classList.toggle("on", on); };
 $("tFit").onclick = () => fit();
 $("tFull").onclick = () => { $("mapwrap").classList.toggle("full"); setTimeout(() => map.invalidateSize(), 60); };
-function fit() { if (S.routeLayer) map.fitBounds(S.routeLayer.getBounds().pad(0.25)); else if (S.region) { const b = S.region.bbox; map.fitBounds([[b.south, b.west], [b.north, b.east]]); } }
+function fit() { if (S.routeLayer && S.routeLayer.getLayers().length) map.fitBounds(S.routeLayer.getBounds().pad(0.25)); else if (S.region) { const b = S.region.bbox; map.fitBounds([[b.south, b.west], [b.north, b.east]]); } }
 
 // ---------- measured weather (MEDA) card over the map
 function renderWeather() {
@@ -113,7 +114,7 @@ function planPoints() {
   });
   return { start: S.start, stops, end: S.end };
 }
-function evaOverrides() { const o = {}; ["max_slope_deg", "flat_speed_kmh", "load_kg", "eva_hours", "reserve_fraction", "round_trip"].forEach((k) => (o[k] = S.eva[k])); return o; }
+function evaOverrides() { const o = {}; ["max_slope_deg", "flat_speed_kmh", "load_kg", "eva_hours", "reserve_fraction", "round_trip", "crew_size", "shared_load_kg"].forEach((k) => (o[k] = S.eva[k])); return o; }
 function msg(t) { $("mapmsg").textContent = t || ""; $("mapmsg").classList.toggle("hidden", !t); }
 
 async function calc() {
@@ -121,7 +122,14 @@ async function calc() {
   if (!p.start || !p.end) return;
   msg("");
   const body = { region_id: S.region.region_id, start: p.start, destination: p.end, stops: p.stops.map(({ lon, lat, name }) => ({ lon, lat, name })), optimise_stop_order: true, eva: evaOverrides() };
+  try { localStorage.setItem("marspath.plan", JSON.stringify(body)); } catch { /* HUD falls back to defaults */ }
   try {
+    S.rover = null;
+    if (S.profile === "rover") {
+      S.rover = await api("/routes/rover", { method: "POST", body: JSON.stringify(body) });
+      S.route = null; $("compare").innerHTML = "";
+      drawRover(); renderRoverSummary(); renderWeather(); return;
+    }
     if (S.profile === "compare") {
       const d = await api("/routes/compare", { method: "POST", body: JSON.stringify({ ...body, profiles: ["gentlest", "fastest", "shortest"] }) });
       const routes = d.routes || [];
@@ -137,6 +145,7 @@ async function calc() {
 function tip(html, cls) { return { permanent: true, direction: "top", offset: [0, -10], className: "lbl " + (cls || ""), html }; }
 function drawRoute() {
   if (S.routeLayer) map.removeLayer(S.routeLayer);
+  if (!S.route) return;
   const r = S.route; if (!r) return;
   const g = L.featureGroup();
   const ll = r.geometry.coordinates.map(([lo, la]) => [la, lo]);
@@ -154,6 +163,54 @@ function drawRoute() {
     if (!first && !last) m.on("click", () => selectPov(planPoints().stops.find((x) => x.name === s.name)?.site));
   });
   S.routeLayer = g.addTo(map); fit();
+}
+function drawRover() {
+  if (S.routeLayer) map.removeLayer(S.routeLayer);
+  const r = S.rover; if (!r) return;
+  const g = L.featureGroup();
+  L.geoJSON(r.walkback_envelope, { pane: "overlays", style: { color: "#15803d", weight: 1.5, dashArray: "4 4", fillColor: "#22c55e", fillOpacity: 0.12 } }).addTo(g);
+  r.geometry.coordinates.forEach((line, k) => {
+    const ll = line.map(([lo, la]) => [la, lo]);
+    L.polyline(ll, { pane: "route", color: "#3b1d0a", weight: 7, opacity: 0.7 }).addTo(g);
+    L.polyline(ll, { pane: "route", color: k ? "#ffd8a8" : "#ff9a3c", weight: 3.5, dashArray: k ? "3 8" : null }).addTo(g);
+  });
+  (r.warnings || []).forEach((w) => L.circleMarker([w.location[1], w.location[0]], { pane: "route", radius: 11, color: "#b91c1c", weight: 3, fillColor: "#fecaca", fillOpacity: 0.85 })
+    .bindTooltip(`<b>${esc(w.title)}</b><small>${esc(w.explanation)}</small>`, { direction: "top", className: "lbl" }).addTo(g));
+  (r.stops || []).forEach((s, i) => {
+    const [lo, la] = s.snapped, first = i === 0;
+    L.circleMarker([la, lo], { pane: "route", radius: first ? 9 : 7, color: "#fff", weight: 3, fillColor: first ? "#2f7fe0" : "#1b1b1b", fillOpacity: 1 }).addTo(g)
+      .bindTooltip(first ? `Habitat<small>(${esc(s.name)})</small>` : `S${i}<small>${esc(s.name)} · walk home ${s.walkback_min === null ? NA : Math.round(s.walkback_min) + " min"}</small>`,
+        (() => { const dir = first ? "bottom" : ["top", "left", "right", "bottom"][(i - 1) % 4], off = { top: [0, -10], bottom: [0, 10], left: [-10, 0], right: [10, 0] }[dir];
+          return { permanent: true, direction: dir, offset: off, className: "lbl" + (first ? " blue" : "") }; })());
+  });
+  S.routeLayer = g.addTo(map); fit();
+}
+function renderRoverSummary() {
+  const r = S.rover, wb = r.walkback, ok = wb.ok, walk = r.walking_only || {};
+  $("tiles").innerHTML = [
+    ["rover", "Drive", fmt(r.drive_km, 1, " km")], ["clock", "Sortie Time", hm(r.total_min)],
+    ["suit", "Longest in Suit", hm(r.longest_suit_time_min)], ["crew", "Crew", `${r.rover.crew_size}`],
+  ].map(([i, l, v]) => `<div class="tile">${ico(i)}<small>${l}</small><b>${v}</b></div>`).join("") +
+    `<div class="tile ${ok ? "ok" : "bad"}">${ico("back")}<b>${ok ? "Walk-back OK" : `${fmt(-wb.min_margin_min, 0)} min short`}</b><small>(${ok ? "home on foot from every point" : Math.round(wb.fraction_within * 100) + "% of drive in range"})</small></div>`;
+  const usable = r.eva_params?.derived?.usable_minutes;
+  $("compare").innerHTML = `<table><tr><th>Plan (same ${fmt(r.rover.stop_minutes, 0)} min work per stop)</th><th>Sortie</th><th>Longest in suit</th><th>Suit budget (${hm(usable)})</th><th>Walk-back</th></tr>
+    <tr><td>Walking only</td><td>${hm(walk.total_min)}</td><td>${hm(walk.longest_suit_time_min)}</td><td>${walk.within_budget === undefined ? NA : walk.within_budget ? "within" : "exceeds"}</td><td>on foot</td></tr>
+    <tr><td>${r.rover.type === "pressurized" ? "Pressurized rover" : "Unpressurized rover"}, ${fmt(r.rover.speed_kmh, 0)} km/h</td><td>${hm(r.total_min)}</td><td>${hm(r.longest_suit_time_min)}</td><td>${r.suit_time_within_budget ? "within" : "exceeds"}</td><td>${ok ? "home on foot from every point" : `${fmt(-wb.min_margin_min, 0)} min short at worst`}</td></tr></table>
+    <small style="color:var(--mut)">Walk-back rule from Apollo; rover speed, crew of two and suitport times from the NASA SEV concept fact sheet. Green area: where the crew could walk home on a fresh suit.</small>`;
+  drawWalkback(r);
+}
+function drawWalkback(r) {
+  const p = (r.walkback.profile || []).filter((d) => d.walkback_min !== null); if (p.length < 2) { $("chart").innerHTML = ""; return; }
+  const W = 640, H = 118, L0 = 62, R0 = 10, T = 14, B = 22, x1 = Math.max(...p.map((d) => d.distance_km));
+  const yhi = Math.max(...p.map((d) => Math.max(d.walkback_min, d.limit_min))) * 1.1;
+  const X = (v) => L0 + (v / (x1 || 1)) * (W - L0 - R0), Y = (v) => T + (1 - v / (yhi || 1)) * (H - T - B);
+  const path = (k) => p.map((d, i) => `${i ? "L" : "M"}${X(d.distance_km).toFixed(1)} ${Y(d[k]).toFixed(1)}`).join(" ");
+  const yt = [0, 1, 2, 3].map((i) => (yhi * i) / 3), xt = [0, 1, 2, 3, 4].map((i) => (x1 * i) / 4);
+  $("chart").innerHTML = `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">
+    ${yt.map((v) => `<line x1="${L0}" x2="${W - R0}" y1="${Y(v)}" y2="${Y(v)}" stroke="rgba(90,50,30,.14)"/><text x="${L0 - 6}" y="${Y(v) + 4}" text-anchor="end" fill="#6b574b" font-size="10.5">${Math.round(v)} min</text>`).join("")}
+    ${xt.map((v) => `<text x="${X(v)}" y="${H - 5}" text-anchor="middle" fill="#6b574b" font-size="10.5">${v.toFixed(1)} km</text>`).join("")}
+    <path d="${path("limit_min")}" fill="none" stroke="#15803d" stroke-width="2" stroke-dasharray="6 4"/><path d="${path("walkback_min")}" fill="none" stroke="#d9651c" stroke-width="2"/>
+    <text x="${W - R0}" y="${T + 2}" text-anchor="end" font-size="11" fill="#6b574b"><tspan fill="#d9651c">━ walk home</tspan>  <tspan fill="#15803d">┅ suit time available</tspan></text></svg>`;
 }
 function renderSummary() {
   const r = S.route; if (!r) return;
@@ -224,7 +281,7 @@ async function renderGoals() {
     if (u) $("gth_" + g.id).outerHTML = `<img src="${esc(u)}" alt="Perseverance image near ${esc(shortName(f.properties.name))}" loading="lazy">`;
   }
 }
-const EVA_ROWS = [["slope", "Max Slope (limit)", "max_slope_deg", (v) => `≤ ${v}°`], ["speed", "Walk Speed (flat)", "flat_speed_kmh", (v) => `${(+v).toFixed(1)} km/h`], ["bag", "Equipment Load", "load_kg", (v) => `${v} kg`],
+const EVA_ROWS = [["crew", "Crew (walk together)", "crew_size", (v) => `${v}${+v === 2 ? " (pair)" : ""}`], ["slope", "Max Slope (limit)", "max_slope_deg", (v) => `≤ ${v}°`], ["speed", "Walk Speed (flat)", "flat_speed_kmh", (v) => `${(+v).toFixed(1)} km/h`], ["bag", "Equipment Load", "load_kg", (v) => `${v} kg each`], ["bag", "Shared Kit", "shared_load_kg", (v) => `${v} kg (split)`],
   ["clock", "EVA Time Budget", "eva_hours", (v) => `${v} h`], ["back", "Return Reserve", "reserve_fraction", (v) => `${Math.round(v * 100)}% (≤ ${fmt(S.eva.eva_hours * (1 - v), 1)} h out)`]];
 function renderEva() {
   $("eva").innerHTML = EVA_ROWS.map(([i, l, k, f]) => `<div class="kvrow">${ico(i)}<span>${l}</span>${S.editing ? `<input data-k="${k}" type="number" step="any" value="${S.eva[k]}">` : `<b>${S.eva[k] === undefined ? NA : f(S.eva[k])}</b>`}</div>`).join("") +

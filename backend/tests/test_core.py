@@ -409,3 +409,63 @@ def test_every_assistant_document_has_a_checked_licence():
         assert d.get("url", "").startswith("https://"), d.get("title")
         lic = d.get("licence", "")
         assert lic and "confirm" not in lic.lower(), (d["title"], lic)
+
+
+def test_crew_shares_kit_and_profile_has_walk_home(synthetic):
+    """A pair splitting shared kit carries less each, so walks faster; the route profile reports the walk home."""
+    from app.routing import compute_route
+    a, b = (120.005, 10.012), (120.03, 10.03)
+    solo = EvaParams.defaults().merged({"crew_size": 1, "load_kg": 10, "shared_load_kg": 20})
+    pair = EvaParams.defaults().merged({"crew_size": 2, "load_kg": 10, "shared_load_kg": 20})
+    assert solo.load_per_person_kg == 30 and pair.load_per_person_kg == 20
+    r1, r2 = compute_route(synthetic, [a, b], solo, "fastest"), compute_route(synthetic, [a, b], pair, "fastest")
+    assert r2["duration_min"] < r1["duration_min"]
+    prof = r2["elevation_profile"]
+    assert prof[0]["walk_home_min"] == 0 and prof[0]["eta_min"] == 0
+    assert all(x["walk_home_min"] <= y["walk_home_min"] + 1e-9 for x, y in zip(prof, prof[1:]))
+    assert abs(prof[-1]["walk_home_min"] - r2["return_duration_min"]) <= 0.1
+    with pytest.raises(ValueError):
+        EvaParams.defaults().merged({"crew_size": 9})
+
+
+def test_rover_plan_walkback_rule(synthetic):
+    """Rover plan: the walk home from each stop matches the walking model, and a tight suit budget triggers R8."""
+    from app.reachability import _dijkstra
+    from app.rover import compute_rover_plan
+    from app.routing import build_masks, snap
+    a, b, c = (120.005, 10.012), (120.02, 10.02), (120.03, 10.03)
+    eva = EvaParams.defaults().merged({"eva_hours": 6})
+    plan = compute_rover_plan(synthetic, [a, b, c], eva, ["Hab", "B", "C"], "pressurized", 10, 30, 10)
+    assert plan["drive_km"] > 0 and plan["total_min"] > plan["drive_out_min"]
+    assert plan["eva_at_stops_min"] == 2 * (30 + 2 * 10)
+    assert plan["longest_suit_time_min"] == 40 and plan["suit_time_within_budget"]
+    # walk-back at stop C equals an independent inbound Dijkstra on the walking model
+    g = synthetic.grid
+    passable, mult = build_masks(synthetic, eva)
+    home = snap(synthetic, passable, *a)[0]
+    t = _dijkstra(synthetic.elev_flat, passable, mult, g.height, g.width, synthetic.dx_rows, g.dy_m, int(home),
+                  eva.flat_speed_ms, eva.max_grade, True, 1e9)
+    assert abs(plan["stops"][2]["walkback_min"] - t[snap(synthetic, passable, *c)[0]] / 60) < 0.2
+    tight = EvaParams.defaults().merged({"eva_hours": 0.5, "reserve_fraction": 0.0})
+    bad = compute_rover_plan(synthetic, [a, c], tight, ["Hab", "C"], "pressurized", 10, 5, 10)
+    far_home = bad["stops"][1]["walkback_min"]
+    if far_home is not None and far_home > 20:  # walk home longer than 30 min usable minus a 10 min suitport exit
+        assert not bad["walkback"]["ok"] and any(w["rule_id"] == "R8_WALKBACK" for w in bad["warnings"])
+    # an unpressurized rover uses suit time while driving, so it can never have more margin
+    un = compute_rover_plan(synthetic, [a, b, c], eva, ["Hab", "B", "C"], "unpressurized", 10, 30, 10)
+    assert un["walkback"]["min_margin_min"] <= plan["walkback"]["min_margin_min"] + 1e-6
+    assert un["longest_suit_time_min"] > plan["longest_suit_time_min"]
+
+
+def test_boulder_shadow_detector_on_synthetic_image():
+    """Compact dark shadows of rock size are counted; a long thin shadow and nodata are not."""
+    from app.boulders import detect
+    rng = np.random.default_rng(1)
+    img = (120 + rng.normal(0, 3, (400, 400))).clip(1, 255).astype("uint8")
+    for r, c in ((60, 60), (200, 120), (300, 300)):
+        img[r:r + 5, c:c + 4] = 40                     # ~1.25 m2 compact shadows
+    img[100:103, 150:350] = 40                          # 50 m long scarp shadow: rejected
+    img[350:, :50] = 0                                  # nodata corner: ignored
+    out = detect(img, 0.25)
+    assert len(out["rows"]) == 3
+    assert np.all((out["diameter_m"] > 1.0) & (out["diameter_m"] < 1.5))

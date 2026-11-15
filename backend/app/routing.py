@@ -338,8 +338,11 @@ def compute_route(region: Region, points: list[tuple[float, float]], eva: EvaPar
     sel = list(range(0, len(cells), step))
     if sel[-1] != len(cells) - 1:
         sel.append(len(cells) - 1)
+    # walking time from each point back to the start along the same path (signed grade reversed)
+    cum_back = np.concatenate([[0.0], np.cumsum(t_back)])
     profile_pts = [{"distance_km": round(float(cum_d[i]) / 1000, 4), "elevation_m": round(float(z[i]), 2),
                     "grade_deg": round(float(grade_deg[min(i, len(grade_deg) - 1)]), 1) if len(grade_deg) else 0.0,
+                    "eta_min": round(float(cum_t[i]) / 60, 2), "walk_home_min": round(float(cum_back[i]) / 60, 2),
                     "lon": round(lonlat[i][0], 6), "lat": round(lonlat[i][1], 6)} for i in sel]
 
     warnings = _warnings(region, eva, cells, lonlat, cum_d, grade_deg, rough_cells, need_min, out_min, back_min, stops)

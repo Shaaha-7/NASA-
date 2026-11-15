@@ -24,7 +24,8 @@ from .region_store import available_region_ids, get_region
 from .routing import HAVE_NUMBA, PROFILES, RouteError, compute_route, optimise_stop_order
 from .point_info import point_info, terrain_patch
 from .reachability import compute_reachability
-from .schemas import AskRequest, CompareRequest, MissionRequest, ReachabilityRequest, RouteRequest
+from .rover import compute_rover_plan
+from .schemas import AskRequest, CompareRequest, MissionRequest, ReachabilityRequest, RouteRequest, RoverRouteRequest
 
 VERSION = "1.0.0"
 app = FastAPI(title="MarsPath API", version=VERSION,
@@ -319,6 +320,17 @@ def routes_calculate(req: RouteRequest):
     route["stop_order"] = opt or {"order": list(range(len(pts) - 2)), "changed": False}
     route["offline"] = not netutil.is_online()
     return _attach_space_weather(route, eva)
+
+
+@app.post(f"{API}/routes/rover")
+def routes_rover(req: RoverRouteRequest):
+    """Rover-assisted plan: drive between stops, walk at each stop, and check at every point of the drive
+    that the crew could walk home if the rover failed (Apollo walk-back rule; NASA SEV concept numbers)."""
+    r, pts, eva, names = _route_inputs(req)
+    rp = req.rover
+    out = compute_rover_plan(r, pts, eva, names, rp.rover_type, rp.speed_kmh, rp.stop_minutes, rp.suitport_minutes)
+    out["offline"] = not netutil.is_online()
+    return out
 
 
 @app.post(f"{API}/reachability")

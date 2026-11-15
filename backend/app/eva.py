@@ -32,6 +32,8 @@ class EvaParams:
     roughness_max_m: float = 1.5
     roughness_caution_m: float = 0.75
     round_trip: bool = True
+    crew_size: int = 2
+    shared_load_kg: float = 0.0
 
     @classmethod
     def defaults(cls) -> "EvaParams":
@@ -61,13 +63,22 @@ class EvaParams:
             raise ValueError("reserve_fraction must be 0..0.9")
         if not (0 <= self.load_kg <= 200):
             raise ValueError("load_kg must be 0..200")
+        if not (1 <= self.crew_size <= 4):
+            raise ValueError("crew_size must be 1..4")
+        if not (0 <= self.shared_load_kg <= 400):
+            raise ValueError("shared_load_kg must be 0..400")
         if self.roughness_max_m <= 0 or self.roughness_ref_m <= 0:
             raise ValueError("roughness thresholds must be > 0")
 
     # ---- derived quantities
     @property
+    def load_per_person_kg(self) -> float:
+        """Own load plus an equal share of the crew's shared kit (the pair walks together at one pace)."""
+        return self.load_kg + self.shared_load_kg / self.crew_size
+
+    @property
     def load_factor(self) -> float:
-        return max(0.3, 1.0 - self.load_speed_penalty_per_10kg * self.load_kg / 10.0)
+        return max(0.3, 1.0 - self.load_speed_penalty_per_10kg * self.load_per_person_kg / 10.0)
 
     @property
     def flat_speed_ms(self) -> float:
@@ -87,7 +98,10 @@ class EvaParams:
     def assumptions(self) -> list[str]:
         return [
             f"Suited walking speed on flat ground {self.flat_speed_kmh} km/h, reduced {100*(1-self.load_factor):.0f}% "
-            f"for a {self.load_kg:g} kg load ({self.load_speed_penalty_per_10kg*100:.0f}% per 10 kg) - team assumption.",
+            f"for a {self.load_per_person_kg:g} kg load per person ({self.load_speed_penalty_per_10kg*100:.0f}% per 10 kg) - team assumption.",
+            f"Crew of {self.crew_size} walking together at one pace" + (f"; {self.shared_load_kg:g} kg of shared kit split equally "
+            f"({self.shared_load_kg / self.crew_size:g} kg each) on top of {self.load_kg:g} kg personal load." if self.shared_load_kg else
+            f"; {self.load_kg:g} kg carried by each.") + " Times apply to the whole crew.",
             "Speed varies with grade by Tobler's hiking function (Tobler 1993), rescaled to the flat speed - an Earth model used as an assumption.",
             f"Grades steeper than {self.max_slope_deg:g} deg (up or down) are not walked; cells whose slope exceeds it are avoided.",
             f"Roughness slows walking (speed halves at {self.roughness_ref_m:g} m); cells rougher than {self.roughness_max_m:g} m are avoided.",
@@ -99,6 +113,6 @@ class EvaParams:
 
     def as_dict(self) -> dict:
         d = asdict(self)
-        d["derived"] = {"load_factor": round(self.load_factor, 3), "effective_flat_speed_kmh": round(self.flat_speed_ms * 3.6, 3),
+        d["derived"] = {"load_factor": round(self.load_factor, 3), "load_per_person_kg": round(self.load_per_person_kg, 1), "effective_flat_speed_kmh": round(self.flat_speed_ms * 3.6, 3),
                         "usable_minutes": round(self.usable_minutes, 1)}
         return d
