@@ -42,10 +42,10 @@ const LAYER_ROWS = [
   { key: "imagery", name: "Surface Imagery", sub: "(CTX, 6 m)", ids: ["ctx"], on: true, note: " CTX is a greyscale camera; the Mars tint is for display only." },
   { key: "geology", name: "Geologic Units", sub: "(USGS SIM 3464)", ids: ["geology"], on: true },
   { key: "thermal", name: "Thermal", sub: "(THEMIS)", ids: ["themis_day"], on: false },
-  { key: "spectral", name: "Spectral", sub: "(CRISM)", ids: [], on: false },
-  { key: "atmos", name: "Atmospheric", sub: "(MEDA)", ids: [], on: false },
+  { key: "spectral", name: "Spectral", sub: "(CRISM)", ids: ["crism_carbonate"], alt: ["crism_carbonate", "crism_mafic"], on: false },
+  { key: "atmos", name: "Atmospheric", sub: "(MEDA)", ids: [], special: "meda", on: false },
 ];
-const BLEND = { geology: 0.8, themis_day: 1, hillshade: 0.55, slope: 1 };
+const BLEND = { crism_carbonate: 1, crism_mafic: 1, geology: 0.8, themis_day: 1, hillshade: 0.55, slope: 1 };
 
 function setOverlay(id, on) {
   const meta = S.layers[id];
@@ -58,30 +58,52 @@ $("opacity").oninput = () => { $("opv").textContent = $("opacity").value + "%"; 
 
 function renderLayers() {
   $("layerList").innerHTML = LAYER_ROWS.map((r) => {
-    const have = r.ids.length && r.ids.every((i) => S.layers[i]);
-    const m = have ? S.layers[r.ids[0]] : null;
+    const have = r.special === "meda" ? !!S.weather?.available : r.ids.length && r.ids.every((i) => S.layers[i]);
+    const m = have && r.ids.length ? S.layers[r.ids[0]] : r.special === "meda" && have ? { mission: "Mars 2020", instrument: "MEDA", source: "measured weather at the science sites (historical, not live)" } : null;
+    const pick = have && r.alt ? `<select data-alt="${r.key}" title="Which CRISM map">${r.alt.filter((i) => S.layers[i]).map((i) => `<option value="${i}" ${i === r.ids[0] ? "selected" : ""}>${i === "crism_mafic" ? "Mafic" : "Carbonate"}</option>`).join("")}</select>` : "";
     const tip = have ? `${m.mission || ""} ${m.instrument || ""} - ${m.source || m.name || ""}.${r.note || ""}` : "Data not loaded for this region";
     return `<label class="row ${have ? "" : "off"}"><input type="checkbox" data-row="${r.key}" ${have && r.on ? "checked" : ""} ${have ? "" : "disabled"}>
-      <span class="nm">${esc(r.name)} <small>${esc(r.sub)}${have ? "" : " - not loaded"}</small></span><span class="info" title="${esc(tip)}">i</span></label>`;
+      <span class="nm">${esc(r.name)} <small>${esc(r.sub)}${have ? "" : " - not loaded"}</small></span>${pick}<span class="info" title="${esc(tip)}">i</span></label>`;
   }).join("");
   $("layerList").querySelectorAll("input").forEach((cb) => (cb.onchange = () => {
     const row = LAYER_ROWS.find((r) => r.key === cb.dataset.row);
     row.on = cb.checked; row.ids.forEach((i) => setOverlay(i, cb.checked));
+    if (row.special === "meda") renderWeather();
+    renderLegend();
+  }));
+  $("layerList").querySelectorAll("select[data-alt]").forEach((sel) => (sel.onchange = () => {
+    const row = LAYER_ROWS.find((r) => r.key === sel.dataset.alt);
+    row.ids.forEach((i) => setOverlay(i, false)); row.ids = [sel.value]; if (row.on) setOverlay(sel.value, true); renderLegend();
   }));
   LAYER_ROWS.forEach((r) => r.ids.forEach((i) => S.layers[i] && setOverlay(i, r.on)));
   const types = new Set(["topographic", "optical"]);
   if (S.layers.geology) types.add("geologic"); if (S.layers.themis_day) types.add("thermal"); types.add("radiation");
+  if (S.layers.crism_carbonate) types.add("spectral"); if (S.weather?.available) types.add("atmospheric");
   $("ftTypes").textContent = `(${types.size} data types)`;
 }
 function renderLegend() {
   const items = S.layers.geology?.legend?.items || [];
-  $("legend").innerHTML = items.length ? items.map(([n, c]) => `<div><i style="background:${esc(c)}"></i>${esc(n)}</div>`).join("") : `<div>Geologic map ${NA}</div>`;
+  const sp = LAYER_ROWS.find((r) => r.key === "spectral"), lg = sp.on && S.layers[sp.ids[0]]?.legend;
+  const crism = lg ? `<div style="display:block;border-bottom:1px solid var(--line2);padding-bottom:5px;margin-bottom:4px"><b>CRISM ${sp.ids[0] === "crism_mafic" ? "mafic" : "carbonate"} map</b><br>
+    <span style="color:#ff8080">R</span> ${esc(lg.red)} · <span style="color:#7dff9a">G</span> ${esc(lg.green)} · <span style="color:#8ab4ff">B</span> ${esc(lg.blue)}<br><span style="color:var(--mut)">${esc(lg.reading)}</span></div>` : "";
+  $("legend").innerHTML = crism + (items.length ? items.map(([n, c]) => `<div><i style="background:${esc(c)}"></i>${esc(n)}</div>`).join("") : `<div>Geologic map ${NA}</div>`);
 }
 $("tLayers").onclick = () => { const cb = document.querySelector('[data-row="geology"]'); if (cb && !cb.disabled) { cb.checked = !cb.checked; cb.onchange(); } };
 $("tSlope").onclick = () => { const on = !S.overlays.slope; setOverlay("slope", on); $("tSlope").classList.toggle("on", on); };
 $("tFit").onclick = () => fit();
 $("tFull").onclick = () => { $("mapwrap").classList.toggle("full"); setTimeout(() => map.invalidateSize(), 60); };
 function fit() { if (S.routeLayer) map.fitBounds(S.routeLayer.getBounds().pad(0.25)); else if (S.region) { const b = S.region.bbox; map.fitBounds([[b.south, b.west], [b.north, b.east]]); } }
+
+// ---------- measured weather (MEDA) card over the map
+function renderWeather() {
+  const on = LAYER_ROWS.find((r) => r.key === "atmos").on, el = $("wx");
+  el.classList.toggle("hidden", !on || !S.weather?.available);
+  if (!on || !S.weather?.available) return;
+  const stops = planPoints().stops, rng = (o, u, d = 0) => (o ? `${fmt(o.min, d)} to ${fmt(o.max, d)}${u}` : NA);
+  const rows = stops.map((s) => { const w = S.weather.sites[s.site]; if (!w) return "";
+    return `<tr><td><b>${esc(s.name)}</b><br><small>sol ${w.sol}</small></td><td>${rng(w.air_temp_c, " °C")}</td><td>${rng(w.ground_temp_c, " °C")}</td><td>${rng(w.pressure_pa, " Pa")}</td><td>${w.wind_speed_ms ? fmt(w.wind_speed_ms.mean, 1) + " m/s" : NA}</td></tr>`; }).join("");
+  el.innerHTML = `<b>Measured weather (MEDA)</b><table><tr><th>Stop</th><th>Air</th><th>Ground</th><th>Pressure</th><th>Wind</th></tr>${rows || `<tr><td colspan="5">No record for these stops</td></tr>`}</table><small>Perseverance measurements on the sol it worked at each stop. Historical, not live.</small>`;
+}
 
 // ---------- route
 const shortName = (n) => String(n || "").split(/[,(]/)[0].trim();
@@ -109,7 +131,7 @@ async function calc() {
       S.route = await api("/routes/calculate", { method: "POST", body: JSON.stringify({ ...body, profile: S.profile }) });
       $("compare").innerHTML = "";
     }
-    drawRoute(); renderSummary();
+    drawRoute(); renderSummary(); renderWeather();
   } catch (e) { msg(e.message); }
 }
 function tip(html, cls) { return { permanent: true, direction: "top", offset: [0, -10], className: "lbl " + (cls || ""), html }; }
@@ -288,6 +310,7 @@ function openAssistant() {
     $("regionSub").textContent = S.region.is_test_fixture ? "TEST FIXTURE: synthetic terrain, not real Mars data" : "Chosen: heavily studied site (Perseverance ground truth)";
     const [lay, ss, eva] = await Promise.all([api(`/layers?region_id=${encodeURIComponent(S.region.region_id)}`), api(`/science-sites?region_id=${encodeURIComponent(S.region.region_id)}`), api("/eva/defaults")]);
     (lay.layers || []).forEach((l) => (S.layers[l.id] = l));
+    S.weather = await api(`/weather?region_id=${encodeURIComponent(S.region.region_id)}`).catch(() => null);
     if (S.layers.ctx) $("regionThumb").style.backgroundImage = `url(${S.layers.ctx.url})`;
     renderLayers(); renderLegend();
     S.sites = (ss.features || []).filter((f) => f.properties.kind === "science_site");

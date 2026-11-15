@@ -70,7 +70,7 @@ body{font:13px/1.35 "Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif;c
     <div class="upd" id="upd">-</div>
   </div>
 
-  <div class="card stats sl"><div><b id="sSlope">-</b><sup>DEG</sup><small>Slope here</small></div><div><b id="sElev">-</b><sup>M</sup><small>Elevation</small></div></div>
+  <div class="card stats sl"><div><b id="sA">-</b><sup id="sAu"></sup><small id="sAl">-</small></div><div><b id="sB">-</b><sup id="sBu"></sup><small id="sBl">-</small></div></div>
   <div class="card stats sr"><div><b id="sRad">-</b><sup id="sRadU"></sup><small>Radiation (Gale reference)</small></div><div><b id="sWalk">-</b><sup>%</sup><small>Walkable ground</small></div></div>
 
   <div class="card side sl">
@@ -158,10 +158,12 @@ $("report").onclick = () => { const a = document.createElement("a"); a.href = UR
     if (!site && !Number.isFinite(lon)) site = sites.find((f) => f.properties.goal_id !== "context") || sites[0];
     if (site) [lon, lat] = site.geometry.coordinates;
     const pq = `region_id=${rq}&lon=${lon}&lat=${lat}`;
+    const wxq = site ? `region_id=${rq}&site_id=${encodeURIComponent(site.properties.id)}` : pq;
+    const wx = await get(`/weather?${wxq}`).catch(() => ({}));
     const [gv, pi, patch, sw] = await Promise.all([
       get(`/ground-view?${pq}&max_images=12`).catch(() => ({})), get(`/point-info?${pq}`).catch(() => ({})),
       get(`/terrain/patch?${pq}&size_m=300&n=24`).catch(() => ({})), get("/space-weather?eva_hours=4").catch(() => ({}))]);
-    D.report = { generated_utc: new Date().toISOString(), region_id: region, point: { lon, lat }, science_site: site ? site.properties : null, point_info: pi, terrain_patch: patch, space_weather: { advisory: sw.advisory, counts: sw.counts, fetched_at: sw.fetched_at, rad_reference: sw.rad_reference }, rover_stop: gv.rover_stop, note: "Model-derived values under team assumptions; not a certified safety assessment." };
+    D.report = { generated_utc: new Date().toISOString(), region_id: region, point: { lon, lat }, science_site: site ? site.properties : null, point_info: pi, terrain_patch: patch, measured_weather_meda: wx, space_weather: { advisory: sw.advisory, counts: sw.counts, fetched_at: sw.fetched_at, rad_reference: sw.rad_reference }, rover_stop: gv.rover_stop, note: "Model-derived values under team assumptions; not a certified safety assessment." };
 
     D.imgs = (gv.images || []).map((x) => ({ u: x.local_medium_url || (gv.offline ? null : x.large_url || x.medium_url), sol: x.sol, cam: x.camera_label || x.camera, credit: x.credit || "NASA/JPL-Caltech" })).filter((x) => x.u);
     if (D.i >= D.imgs.length) D.i = 0; showImg();
@@ -171,7 +173,18 @@ $("report").onclick = () => { const a = document.createElement("a"); a.href = UR
     $("title").innerHTML = esc(parts[0]) + (parts[1] ? "/<br>" + esc(parts[1].replace(/\)$/, "")) : "");
     $("tagp").textContent = site ? (site.properties.goal_id === "context" ? "Context stop" : "Science goal " + site.properties.goal_id) : "Expedition";
     const t = pi.terrain || {};
-    $("sSlope").textContent = fmt(t.slope_deg, 1); $("sElev").textContent = t.elevation_m === null || t.elevation_m === undefined ? NA : Math.round(t.elevation_m).toLocaleString("en-US");
+    const set = (k, v, u, l) => { $("s" + k).textContent = v; $("s" + k + "u").textContent = u; $("s" + k + "l").textContent = l; };
+    if (wx.available) {
+      const near = wx.distance_m ? `, ${Math.round(wx.distance_m)} m away` : "";
+      if (wx.wind_speed_ms) set("A", fmt(wx.wind_speed_ms.mean, 1), "M/S", `Wind speed, mean (sol ${wx.sol})`);
+      else if (wx.pressure_pa) set("A", fmt(wx.pressure_pa.mean, 0), "PA", `Air pressure, mean (sol ${wx.sol})`);
+      else set("A", fmt(t.slope_deg, 1), "DEG", "Slope here");
+      if (wx.air_temp_c) set("B", fmt(wx.air_temp_c.max, 0), "°C", `Day temperature, high (low ${fmt(wx.air_temp_c.min, 0)} °C${near})`);
+      else set("B", t.elevation_m === null || t.elevation_m === undefined ? NA : Math.round(t.elevation_m).toLocaleString("en-US"), "M", "Elevation");
+    } else {
+      set("A", fmt(t.slope_deg, 1), "DEG", "Slope here");
+      set("B", t.elevation_m === null || t.elevation_m === undefined ? NA : Math.round(t.elevation_m).toLocaleString("en-US"), "M", "Elevation");
+    }
     const rr = sw.rad_reference || {}; $("sRad").textContent = rr.value ?? NA; $("sRadU").textContent = rr.unit ? rr.unit.toUpperCase() : "";
     $("sWalk").textContent = patch.walkable_fraction === null || patch.walkable_fraction === undefined ? NA : Math.round(patch.walkable_fraction * 100);
     $("upd").textContent = sw.fetched_at ? "UPD: " + sw.fetched_at.replace("T", " ").slice(0, 16) + " UTC" : "Space weather " + NA;

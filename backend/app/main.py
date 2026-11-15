@@ -17,7 +17,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse, RedirectResponse, Response
 from fastapi.staticfiles import StaticFiles
 
-from . import assistant, config, netutil, offline, rover_images, search, spaceweather
+from . import assistant, config, netutil, offline, rover_images, search, spaceweather, weather
 from .eva import EvaParams
 from .geo import COORDINATE_CONVENTION, validate_lonlat
 from .region_store import available_region_ids, get_region
@@ -147,6 +147,16 @@ def search_endpoint(region_id: str, q: str, limit: int = 10):
     if not q.strip():
         raise HTTPException(422, detail={"code": "bad_request", "message": "Empty search"})
     return search.search(r, q, limit=max(1, min(limit, 50)))
+
+
+@app.get(f"{API}/weather")
+def weather_endpoint(region_id: str, site_id: str | None = None, lon: float | None = None, lat: float | None = None):
+    """Measured MEDA weather (air and ground temperature, pressure, wind when available) for a science site,
+    or for the site nearest a point; with no site or point, all sites. Historical, not live."""
+    r = _region_or_404(region_id)
+    if site_id is None and (lon is None or lat is None):
+        return weather.all_sites(r)
+    return weather.for_site(r, site_id, lon, lat)
 
 
 @app.get(f"{API}/terrain/patch")

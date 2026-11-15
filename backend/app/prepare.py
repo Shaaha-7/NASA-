@@ -355,6 +355,47 @@ def prepare_region(region_id: str, raw_dir: Path | None = None, out_root: Path |
                 "measured (thermal infrared)", "Night IR relates to thermal inertia (loose vs consolidated surface); "
                 "not a direct hazard measure.", 1024, False, 0.7)
 
+    def rgb_layer(key, lid, name, bands_desc, reading):
+        """Three-band spectral browse product (e.g. CRISM) reprojected to an RGBA overlay; no-data stays transparent."""
+        p = inputs.get(key)
+        if not p:
+            return
+        spec = cfg["inputs"][key]
+        og = _overlay_grid(bbox, 1024, float(spec.get("nominal_resolution_m") or grid.mean_res_m))
+        try:
+            bands = [read_to_grid(p, og, resampling="nearest", band=b) for b in (1, 2, 3)]
+        except Exception as e:
+            notes.append(f"Layer {lid} skipped: {e}")
+            log(f"  WARNING {lid}: {e}")
+            return
+        ok = np.isfinite(bands[0]) & np.isfinite(bands[1]) & np.isfinite(bands[2])
+        if not ok.any():
+            notes.append(f"Layer {lid}: no coverage inside the study box.")
+            return
+        from PIL import Image
+        rgba = np.dstack([np.nan_to_num(b).clip(0, 255) for b in bands] + [np.where(ok, 255, 0)]).astype("uint8")
+        Image.fromarray(rgba, "RGBA").save(tmp / "layers" / f"{lid}.png", optimize=True)
+        sources[key]["raster"] = raster_info(p)
+        layers.append({"bounds": og.leaflet_bounds(), "kind": "image", "id": lid, "name": name,
+                       "url": f"layers/{lid}.png", "units": "spectral parameter composite (stretched 0-255 by the CRISM team)",
+                       "legend": {"type": "rgb", "red": bands_desc[0], "green": bands_desc[1], "blue": bands_desc[2],
+                                  "reading": reading},
+                       "mission": spec["mission"], "instrument": spec["instrument"], "source": spec["label"],
+                       "source_url": spec["url"], "resolution_m": round(og.mean_res_m, 1),
+                       "coverage_fraction": round(float(ok.mean()), 3),
+                       "processing": "CRISM MTRDR browse product reprojected to Mars lon/lat (nearest neighbour); colours unchanged.",
+                       "measured_or_derived": "measured (orbital spectroscopy), interpreted as mineral indicators",
+                       "limitations": "Colours indicate spectral signatures at about 36 m per pixel, not mineral abundance; "
+                                      "dust cover and noise affect them. Not a ground measurement.",
+                       "default_on": False, "opacity": 0.75})
+        log(f"  layer {lid}: {og.width} x {og.height} px, coverage {ok.mean()*100:.0f}%")
+
+    rgb_layer("crism_car", "crism_carbonate", "CRISM carbonate indicators (CAR)", ["D2300", "BD2500_2", "BD1900_2"],
+              "Bluish- or yellowish-white often indicates Mg carbonate; red/magenta may indicate Fe/Mg phyllosilicate "
+              "(CRISM CAR browse product description).")
+    rgb_layer("crism_maf", "crism_mafic", "CRISM mafic minerals (MAF)", ["OLINDEX3", "LCPINDEX2", "HCPINDEX2"],
+              "Red: olivine index; green: low-calcium pyroxene index; blue: high-calcium pyroxene index.")
+
     # show the DEM hillshade by default only when there is no imagery to look at
     if any(l["id"] in ("ctx", "hirise") for l in layers):
         for l in layers:
@@ -362,7 +403,7 @@ def prepare_region(region_id: str, raw_dir: Path | None = None, out_root: Path |
                 l["default_on"] = False
     # base map order: imagery first
     order = {"ctx": 0, "hirise": 1, "hillshade": 2, "themis_day": 3, "themis_night": 4, "elevation": 5,
-             "slope": 6, "roughness": 7, "geology": 8}
+             "slope": 6, "roughness": 7, "geology": 8, "crism_carbonate": 9, "crism_mafic": 10}
     layers.sort(key=lambda l: order.get(l["id"], 99))
 
     # ---------------- rover data -> verified science points

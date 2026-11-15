@@ -361,3 +361,23 @@ def test_terrain_patch_is_real_and_bounded(synthetic):
     assert 0.0 <= p["walkable_fraction"] <= 1.0
     assert sum(p["slope_histogram"]["counts"]) > 0
     assert p["slope_deg"]["min"] <= p["slope_deg"]["max"]
+
+
+def test_weather_is_honest_without_data(synthetic):
+    """No MEDA summary for a region: the weather API says so instead of inventing values."""
+    from app import weather
+    w = weather.for_site(synthetic, site_id="test-site-01")
+    assert w["available"] is False and "reason" in w
+    assert weather.all_sites(synthetic)["available"] is False
+
+
+def test_meda_statistics_use_binned_means():
+    """One wild sample must not set the day's maximum: stats come from 5-minute means."""
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
+    import fetch_meda
+    t = np.arange(0, 3600.0)
+    v = np.full(t.size, 200.0); v[100] = 900.0
+    means, labels = fetch_meda.binned(t, v, ["00001M10:00:00.000"] * t.size)
+    s = fetch_meda.stats(means, labels)
+    assert s["max"] < 210 and s["min"] == 200.0
+    assert fetch_meda.k_to_c(s)["min"] == round(200.0 - 273.15, 1)
