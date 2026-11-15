@@ -100,7 +100,7 @@ Crews on Mars will walk to science targets on foot, with limited suit time and n
 
 ## Use of AI
 
-- **Writing the code:** much of the code, tests and documentation in this repository was written and reviewed with **Claude Code** (Anthropic; models Claude Fable 5.2 and Claude Opus 5.5). That includes the backend, the mission dashboard and point-of-view pages, and the MarsPath logo (hand-coded SVG). AI-assisted commits are marked "Co-Authored-By: Claude" in the Git history. The team chose the design, checked the outputs and ran the tests. **TEAM TO FILL:** add any other AI tools teammates used (for example for slides or the video).
+- **Writing the code:** much of the code, tests and documentation in this repository was written and reviewed with **Claude Code** (Anthropic; models Claude Fable 5.2 and Claude Opus 5.5). That includes the backend, the mission dashboard and point-of-view pages, and the MarsPath logo (hand-coded SVG). The team chose the design, checked the outputs and ran the tests. **TEAM TO FILL:** add any other AI tools teammates used (for example for slides or the video).
 - **Inside the app:**
   - The assistant writes answers with **Google Gemini**, or optionally Anthropic Claude, but only from passages retrieved from the cited documents. Each sentence is checked against those sources before it is shown, and without a key or network the assistant quotes the source passage instead.
   - Search uses a local embedding model (BAAI bge-small-en-v1.5).

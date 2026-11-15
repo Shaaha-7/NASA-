@@ -196,7 +196,7 @@ All terrain, imagery, weather and rover data are NASA/USGS products: HiRISE DTM,
 
 ## Use of AI
 
-- **Code:** much of the code, tests and documentation was written and reviewed with Claude Code (Anthropic). Those commits are marked "Co-Authored-By: Claude". The MarsPath logo is hand-coded SVG written the same way.
+- **Code:** much of the code, tests and documentation was written and reviewed with Claude Code (Anthropic). The MarsPath logo is hand-coded SVG written the same way.
 - **Assistant:** the in-app assistant writes answers with Google Gemini (or optionally Anthropic Claude), only from retrieved, cited passages. Each sentence is checked against them before it is shown. Search uses a local embedding model (BAAI bge-small-en-v1.5).
 - **No AI-generated data:** no data or imagery in MarsPath is AI-generated.
 
