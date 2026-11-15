@@ -127,6 +127,32 @@ function showImg() {
   $("bg").src = x.u;
   $("credit").textContent = `${x.cam} · sol ${x.sol} · ${x.credit} · raw image ${D.i + 1}/${D.imgs.length}`;
 }
+// Mean brightness (0-1) of an image, from a 32x32 copy. null if it cannot be read (e.g. cross-origin).
+function brightness(url) {
+  return new Promise((res) => {
+    const im = new Image();
+    im.onload = () => {
+      try {
+        const c = document.createElement("canvas"); c.width = c.height = 32;
+        const g = c.getContext("2d"); g.drawImage(im, 0, 0, 32, 32);
+        const d = g.getImageData(0, 0, 32, 32).data; let s = 0;
+        for (let k = 0; k < d.length; k += 4) s += 0.2126 * d[k] + 0.7152 * d[k + 1] + 0.0722 * d[k + 2];
+        res(s / (d.length / 4) / 255);
+      } catch { res(null); }
+    };
+    im.onerror = () => res(null);
+    im.src = url;
+  });
+}
+// Open on the first well-exposed frame: raw feeds include near-black frames (e.g. Mastcam-Z solar-filter
+// images of the Sun used for dust opacity). They stay in the carousel; we just don't open on them.
+async function firstWellExposed() {
+  for (let k = 0; k < D.imgs.length; k++) {
+    const b = await brightness(D.imgs[k].u);
+    if (b === null || b >= 0.18) return k;
+  }
+  return 0;
+}
 $("prev").onclick = () => { if (D.imgs.length) { D.i = (D.i - 1 + D.imgs.length) % D.imgs.length; showImg(); } };
 $("next").onclick = () => { if (D.imgs.length) { D.i = (D.i + 1) % D.imgs.length; showImg(); } };
 
@@ -175,7 +201,9 @@ $("report").onclick = () => { const a = document.createElement("a"); a.href = UR
     D.report = { generated_utc: new Date().toISOString(), region_id: region, point: { lon, lat }, science_site: site ? site.properties : null, point_info: pi, terrain_patch: patch, measured_weather_meda: wx, space_weather: { advisory: sw.advisory, counts: sw.counts, fetched_at: sw.fetched_at, rad_reference: sw.rad_reference }, rover_stop: gv.rover_stop, note: "Model-derived values under team assumptions; not a certified safety assessment." };
 
     D.imgs = (gv.images || []).map((x) => ({ u: x.local_medium_url || (gv.offline ? null : x.large_url || x.medium_url), sol: x.sol, cam: x.camera_label || x.camera, credit: x.credit || "NASA/JPL-Caltech" })).filter((x) => x.u);
-    if (D.i >= D.imgs.length) D.i = 0; showImg();
+    if (D.i >= D.imgs.length) D.i = 0;
+    if (!Q.has("i") && D.imgs.length) D.i = await firstWellExposed();
+    showImg();
 
     const name = site ? site.properties.name : (pi.nearest_science_site ? "Near " + pi.nearest_science_site.name : "Selected point");
     const parts = String(name).split(/,\s*|\s*\(/);

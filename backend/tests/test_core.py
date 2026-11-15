@@ -400,3 +400,12 @@ def test_packaged_meda_summary_is_physically_plausible():
                 continue
             assert lo <= v["min"] <= v["mean"] <= v["max"] <= hi, (rec["sol"], key, v)
             assert 0 < v["coverage_h"] <= 24.7
+
+
+def test_every_assistant_document_has_a_checked_licence():
+    """Submission rule: everything used is credited. No document may ship with an unchecked licence."""
+    docs = json.loads((ROOT / "data" / "docs" / "docs_sources.json").read_text(encoding="utf-8"))
+    for d in docs:
+        assert d.get("url", "").startswith("https://"), d.get("title")
+        lic = d.get("licence", "")
+        assert lic and "confirm" not in lic.lower(), (d["title"], lic)

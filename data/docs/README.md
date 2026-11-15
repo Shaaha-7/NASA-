@@ -5,4 +5,4 @@
 2. To add your own: put the file here (.pdf, .txt, .md, .html), add an entry to `docs.json`
    with file, title, url, date and licence, then run `python backend/scripts/build_assistant_index.py`.
 
-Only public material. Person 5 checks the licence of each document before the demo.
+Only public material. Each document's licence is recorded in `docs_sources.json` (all checked 2026-11-15). The documents are downloaded by `fetch_docs.py` on each machine and are not stored in this repository.
