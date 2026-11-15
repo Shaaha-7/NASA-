@@ -4,7 +4,7 @@
 
 NASA Space Apps Challenge 2026 · *Interplanetary Survival Guide: Martian Map* · [Submission text](SUBMISSION.md) · [MIT License](LICENSE)
 
-**Team:** Keval Doshi · Sadi Alhayek · Shabeer Ahamed · Sheikha Alazeezi · Umair Raizan
+**Team MARS PATH:** Keval Doshi · Sadi Alhayek · Shabeer Ahamed · Sheikha Alazeezi · Umair Raizan
 
 ![MarsPath mission dashboard: Jezero route with science stops, layers, EVA summary and space weather](docs/screenshots/dashboard.png)
 

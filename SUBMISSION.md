@@ -6,7 +6,7 @@ Ready-to-paste text for the Space Apps project form (all in English). Every numb
 - **Final project link:** https://github.com/Shaaha-7/NASA- (MIT License)
 - **Demo link:** **TEAM TO FILL** (Google Drive or YouTube, "anyone with the link", tested in an incognito window)
 - **Team members:** Keval Doshi, Sadi Alhayek, Shabeer Ahamed, Sheikha Alazeezi, Umair Raizan
-- **Team name:** **TEAM TO FILL**
+- **Team name:** MARS PATH
 
 ---
 
