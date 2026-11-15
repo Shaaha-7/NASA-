@@ -5,7 +5,8 @@ Ready-to-paste text for the Space Apps project form (all in English). Every numb
 - **Challenge:** Interplanetary Survival Guide: Martian Map
 - **Final project link:** https://github.com/Shaaha-7/NASA- (MIT License)
 - **Demo link:** **TEAM TO FILL** (Google Drive or YouTube, "anyone with the link", tested in an incognito window)
-- **Team name and members:** **TEAM TO FILL**
+- **Team members:** Keval Doshi, Sadi Alhayek, Shabeer Ahamed, Sheikha Alazeezi, Umair Raizan
+- **Team name:** **TEAM TO FILL**
 
 ---
 

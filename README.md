@@ -4,6 +4,8 @@
 
 NASA Space Apps Challenge 2026 · *Interplanetary Survival Guide: Martian Map* · [Submission text](SUBMISSION.md) · [MIT License](LICENSE)
 
+**Team:** Keval Doshi · Sadi Alhayek · Shabeer Ahamed · Sheikha Alazeezi · Umair Raizan
+
 ![MarsPath mission dashboard: Jezero route with science stops, layers, EVA summary and space weather](docs/screenshots/dashboard.png)
 
 ## What it does
@@ -23,6 +25,11 @@ NASA Space Apps Challenge 2026 · *Interplanetary Survival Guide: Martian Map* �
 
 **Tested against reality:** planned routes stay a median **61 m** from the tracks Perseverance actually drove, against 122 m for a straight line (closer in 4 of 5 stretches). Run `backend/scripts/validate_against_rover.py jezero`, or see `/api/v1/validation`.
 
+| Rover + walk-back check | Helmet HUD |
+|---|---|
+| ![Rover plus walk-back mode: drive route, walk-back chart and comparison with walking only](docs/screenshots/rover_walkback.png) | ![Helmet HUD: compass, EVA time left, next stop, grade ahead and walk-home time over a Perseverance photo](docs/screenshots/hud.png) |
+| Same four stops: walking alone keeps the crew in suits 5 h 44 m, over the 3 h budget; with a rover the longest suit period is 40 min, and the crew could walk home from every point. | Visor view along the planned route over the nearest real Perseverance photo. |
+
 ![MarsPath point of view: Perseverance Navcam image at Rochette with MEDA weather and terrain cards](docs/screenshots/pov.png)
 
 ## Quick start (Windows)
@@ -39,8 +46,6 @@ run.bat
 - **`get_jezero_data.bat`** downloads the Jezero data into `data/raw/jezero/` and prepares it. The HiRISE DTM is about 1.8 GB; `backend/scripts/fetch_data.py --small` skips it and uses the 20 m CTX DEM instead.
 - **`run.bat`** starts the app at http://localhost:8000/app/. The 3D globe opens first; pick Jezero or press **Skip to map**.
 
-Without the Jezero data the app runs on the synthetic region, marked **TEST FIXTURE**: invented terrain, not Mars.
-
 On macOS or Linux: `python -m venv .venv`, activate it, `pip install -r requirements.txt`, then `python -m uvicorn app.main:app --app-dir backend --port 8000`.
 
 ### Pages
@@ -51,7 +56,6 @@ On macOS or Linux: `python -m venv .venv`, activate it, `pip install -r requirem
 | Mission dashboard | http://localhost:8000/app/dashboard.html |
 | Point of view | http://localhost:8000/app/pov.html |
 | Helmet HUD | http://localhost:8000/app/hud.html (move with the slider, play button or arrow keys; the position is simulated) |
-| Earlier map page | http://localhost:8000/app/?classic=1 |
 | API docs | http://localhost:8000/docs |
 
 ### Offline demo
@@ -139,16 +143,23 @@ frontend/          globe, dashboard, point of view, HUD (plain HTML/JS, Leaflet,
 data/              raw/, processed/, cache/, docs/ (downloaded data is not stored in Git)
 ```
 
-## Limitations
+## Limitations and next steps
 
-- A prototype planning aid, not a certified navigation or safety system. Route scores are relative; no ground is called "safe".
-- Terrain is resolved at the DEM scale: rocks smaller than about 1-2 m are not seen.
-- Data is historical. Weather is MEDA's record for a past sol, not a forecast; the radiation figure is a Gale crater reference.
-- Walking speed and load effects are team assumptions based on an Earth hiking model. The rover drives only where walkers can.
-- The HUD position is simulated along the planned route; nothing is tracked live.
+MarsPath is a planning aid, not a certified navigation or safety system: route scores are relative, and no ground is called "safe". Each known limit has a planned next step.
+
+| Limit today | Next step |
+|---|---|
+| Rocks smaller than about 1-2 m are below the DEM resolution | Boulder map from 25 cm HiRISE imagery (detector built: `backend/app/boulders.py`) |
+| Weather and radiation are historical references (MEDA past sols, Gale crater RAD) | Forecast inputs and sunlight and shadow at walk time from the DEM |
+| Walking speed and load effects are team assumptions from an Earth hiking model | Calibrate against suited-walking test data |
+| The rover drives only where walkers can | Rover slope and power limits from mission designs |
+| One region, Jezero | More candidate landing sites, such as Gale crater, from the same pipeline |
+| The HUD position is simulated along the planned route | Tie the HUD to a live crew position |
 
 ## Troubleshooting
 
+- **Red "TEST FIXTURE" badge:** the app is on the synthetic test region (invented terrain). Run `get_jezero_data.bat` to load Jezero.
+- **Looking for the earlier map page?** It is at http://localhost:8000/app/?classic=1.
 - **`pip install` fails on rasterio:** use 64-bit Python 3.11-3.13 and upgrade pip, or `conda install -c conda-forge rasterio`.
 - **Black map background:** Mars Trek tiles need the internet or the offline cache; the region layers work regardless.
 - **"enclosed" route error:** the point is ringed by slopes over the limit. Move it or raise the maximum slope.
