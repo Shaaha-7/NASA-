@@ -27,6 +27,7 @@ import numpy as np
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "backend"))
 
+from app.config import DATA_DIR  # noqa: E402
 from app.eva import EvaParams  # noqa: E402
 from app.geo import MARS_RADIUS_M, haversine_m  # noqa: E402
 from app.region_store import get_region  # noqa: E402
@@ -64,8 +65,8 @@ def main() -> int:
         print(f"Region {region_id} is not prepared")
         return 1
     g = reg.grid
-    folder = ROOT / "data" / "processed" / region_id
-    raw = ROOT / "data" / "raw" / region_id
+    folder = DATA_DIR / "processed" / region_id
+    raw = DATA_DIR / "raw" / region_id
     wp_file = next(iter(sorted(raw.rglob("M20_waypoints.json"))), None)
     tr_file = next(iter(sorted(raw.rglob("M20_traverse.json"))), None)
     if not wp_file or not tr_file:
